@@ -1,0 +1,46 @@
+.ordersHolder{
+    /* background-color: red; */
+    height: 100%;
+    display: flex;
+    margin-bottom: 10%;
+}
+
+.tt-orders{
+    color: #566a7f;
+}
+
+.lower-card > h4{
+    margin:0px;
+}
+
+.pie-section{
+    width: 100%;
+    justify-content: space-between;
+    /* display: flex; */
+
+}
+
+.total-order{
+    display: flex;
+    /* background-color: green; */
+    width: 100%;
+    flex-direction: column;
+}
+
+.pie-div{
+/* background-color: blue; */
+margin: 10px;
+}
+
+.item-cards-orders{
+    display: flex;
+    flex-direction: column;
+    /* background-color: red; */
+    height: 100%;
+    width: 100%;
+}
+
+.number{
+    font-weight: 600;
+    color: #566a7f;
+}

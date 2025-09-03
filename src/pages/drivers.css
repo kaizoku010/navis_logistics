@@ -1,0 +1,188 @@
+/* src/pages/drivers.css */
+.all-drivers-page {
+    padding: 20px;
+    background-color: rgb(240, 239, 239);
+    height: 100%;
+    border-radius: 10px;
+  }
+  
+  .add-driver {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .all-drivers {
+    margin-top: 20px;
+  }
+  
+  .driver-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+ 
+  .driver_image2 {
+    height: 300px;
+    border-radius: 10px;
+
+    margin-right: 10px;
+    /* border-radius: 50%; */
+  }
+
+  .driver_image {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    border-radius: 50%;
+  }
+ 
+  .modal2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    /* width: 300px; */
+        background-color: rgb(240, 239, 239);
+        /* flex-direction: column; */
+
+    display: flex;
+  }
+
+
+  .modal-content2 {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    /* width: 300px; */
+        background-color: rgb(240, 239, 239);
+        flex-direction: column;
+
+    display: flex;
+  }
+
+
+  .modal-content2 form {
+    display: flex;
+    align-items: center;
+
+    flex-direction: column;
+  }
+  
+  .modal-content2 form input,
+  .modal-content2 form button {
+    margin-bottom: 10px;
+  }
+  
+  
+  .modal-content form {
+    display: flex;
+    align-items: center;
+
+    flex-direction: column;
+  }
+  
+  .modal-content form input,
+  .modal-content form button {
+    margin-bottom: 10px;
+  }
+  
+  .driver-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  
+  
+  .driver-name{
+    margin: 0px;
+    font-size: medium;
+
+}
+
+.driver-company{
+    margin: 0px;
+
+}
+
+
+.details-popup{
+    /* margin-bottom: 20px; */
+    align-content: center;
+
+}
+
+
+.driver-img-section{
+    /* background-color: red; */
+    height:100%;
+    /* width: 100%; */
+}
+
+.close-btn{
+    width: 100%;
+    
+    margin-top: 10px;
+}
+
+.assign-btn{
+    margin-top: 5px;
+    width: 100%;
+}
+
+
+.drivers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.drivers-table th,
+.drivers-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.add-dr{
+  margin: 0px;
+}
+
+.drivers-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.drivers-table tr:hover {
+  background-color: #f0ebeb;
+  cursor: pointer;
+}
+
+.drivers-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px; /* Adjust this value as needed */
+}

@@ -1,0 +1,115 @@
+/* src/header.css */
+.header_div {
+    height: 5rem;
+    box-shadow: -6px 0 rgb(212, 18, 18), 6px 0 rgb(65, 13, 13), 0 7px 5px -2px black;
+  }
+  
+  .headerHolder {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Arial";
+  }
+  
+  .header {
+  }
+  
+  .logo_holder {
+    display: flex;
+  }
+  
+  .logo {
+    width: 14rem;
+    cursor: pointer;
+  }
+  
+  .blockHeader {
+    z-index: 9999;
+    height: 6rem;
+    transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  .button_holder {
+    display: flex;
+    align-items: center;
+    margin-left: 5%;
+  }
+  
+  .header_btn {
+    color: #19497e;
+    opacity: 1;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 1.120rem;
+    line-height: 1.375rem;
+    font-weight: 500;
+    margin-left: 1%;
+    border-radius:18px ;
+    height: 70%;
+    background-color: transparent !important;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant-numeric: unset;
+  }
+  
+  .header_btn:hover {
+    color: #216DF0;
+        background-color: #cecece36 !important;
+  }
+  
+  .login_header {
+    background-color: #e3effb;
+    height: 40px;
+    padding-left: 2%;
+    border-radius: 17px;
+    color: #19497e;
+    padding-right: 2%;
+    box-shadow: 0 0px 1px #216DF0, 0 1px 2px hsla(0, 0%, 0%, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+  
+  .login_header:hover {
+    background-color: #d7e4f1;
+  }
+  
+  .whiteMe {
+    width: 9em;
+    text-align: center;
+    color: #19497e;
+    }
+
+  .contact-header{
+    display: flex;
+    width: 30%;
+    justify-content: right;
+    margin-right: 2%;
+    padding-right: 2%;
+    border-right: 2px solid #b6b6b6;
+  }
+
+  .contact-header > i{
+    color: #a1a1aa;
+    margin-right: 2%;
+    
+  }
+
+  .contact-header > p{
+color: gray;
+font-weight: 400;
+margin-right: 0%;
+  }
+  
+  #ic {
+    align-self: center;
+    height: 1em;
+    font-weight: 700;
+    margin-left: 5px;
+    color: #19497e;
+  }
+  
+  /* #ic:hover {
+    color: white;
+  } */
+  

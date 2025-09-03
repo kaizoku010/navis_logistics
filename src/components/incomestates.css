@@ -1,0 +1,12 @@
+.income_holder{
+    /* background-color: red; */
+}
+
+.income_holder > h5{
+    margin: 0px;
+}
+
+.transTextColor{
+    color: #566a7f;
+
+}

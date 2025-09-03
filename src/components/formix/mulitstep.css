@@ -1,0 +1,165 @@
+.details__wrapper{
+    /* background-color: red; */
+    width: 39em;
+}
+
+
+.tell-us-text{
+    margin-top: .5rem;
+    font-size: 2rem;
+    line-height: 3.25rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant-numeric: unset;
+    margin-bottom: .5rem;
+}
+
+
+.form__item{
+    display: flex;
+    flex-direction: column;
+}
+
+.tll-input{
+    margin-bottom: 12px;
+    height: 3rem;
+    width: 100%;
+}
+
+label{
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: none;
+    margin-bottom: 1%;
+    font-variant-numeric: unset;
+}
+
+.ml-btn{
+    width: 26% !important;
+
+}
+
+.number{
+    width: 100%;
+}
+
+
+
+.label{
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 400;
+    margin-top: .9em;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: none;
+    margin-bottom: 1%;
+    font-variant-numeric: unset;
+}
+
+
+.back-btn-ml{
+margin-bottom: .5em;
+}
+
+
+.rv-btn{
+    margin-top: .5em;
+}
+
+
+.error__feedback{
+    color: red;
+    font-size: small;
+}
+
+
+#lastone{
+    display: flex;
+}
+
+.right_section{
+/* background-color: #eeeff04d; */
+width: 100%;
+margin-left: 0.3em;
+display: flex;
+padding-left: 1rem;
+padding-right: 1rem;
+align-items: center;
+background-color: white;
+justify-content: center;
+}
+
+.data-last{
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.front-page{
+    width: 80%;
+    margin-top: 5%;
+}
+
+.truck-info-front {
+    font-size: 1rem;
+    line-height: 2.25rem;
+    font-weight: 600;
+    margin-top: 0px;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant-numeric: unset;
+    margin-bottom: .5rem;
+}
+
+
+.rest{
+    font-size: 1.6rem;
+    line-height: 2.25rem;
+    font-weight: 600;
+    margin-top: 1%;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant-numeric: unset;
+    margin-bottom: .5rem;
+}
+
+.congs{
+    font-size: 1rem;
+    line-height: 2.25rem;
+    font-weight: 400;
+    margin-top: 1%;
+    width: 40rem;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant-numeric: unset;
+    margin-bottom: .5rem;
+}
+
+.est-time{
+    margin-top: 5%;
+}
+
+
+.front-dets > p{
+font-size: small;
+}
+
+.mapOba{
+    width: 100%;
+    background-color: red;
+}
+
+#auto_i{
+    width: 100%;
+}
+
+.ml-btn2{
+    margin-left: 1%;
+    background-color: #216DF0;
+    color: white;
+}

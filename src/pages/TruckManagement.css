@@ -1,0 +1,279 @@
+/* Truck image styles */
+.truck_image {
+    width: 100%;
+    border-radius: 7px;
+  }
+
+  .edit_truck{
+    margin-bottom: 5%;
+  }
+
+  .ed_input{
+    width: 100%;
+  }
+
+  .update_truck_btn{
+    width: 100%;
+  }
+  
+  /* Truck operations styles */
+  .truck-operations {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: fit-content;
+  }
+  
+  .type_title {
+    margin-bottom: 2px;
+  }
+  
+  /* Truck information styles */
+  .truck_number,
+  .truck_make,
+  .truck_year,
+  .truck_milage,
+  .truck_fuel,
+  .truck_owner {
+    margin: 0;
+  }
+  
+  /* Form group styles */
+  .form-group {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+  }
+  
+  .truck-input {
+    width: 100%;
+  }
+  
+  /* Truck types styles */
+  .truckTypes {
+    padding: 5px;
+    border-radius: 7px;
+  }
+  
+  /* Truck div styles */
+  .truck-div {
+    display: flex;
+    gap: 10px;
+    padding-top: 2%;
+    width: 100%;
+    border-radius: 10px;
+  }
+  
+  /* Form side styles */
+  .form-side {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 220px;
+    padding: 10px;
+  }
+  
+  /* Maps section styles */
+  .maps_section {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  /* Operations map styles */
+  .operationsMap {
+    display: flex;
+    width: 100%;
+    padding: 2%;
+    background-color: rgb(242, 242, 246);
+    border-radius: 7px;
+    height: fit-content;
+  }
+  .group{
+    display: flex;
+    gap: 10px;
+  }
+
+  .truck_header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* TM map styles */
+  .tm-map {
+    margin-top: 10px;
+    padding: 20px;
+    background-color: rgb(242, 242, 246);
+    border-radius: 7px;
+  }
+  
+  .trucks-map-text {
+    margin-bottom: 10px;
+  }
+  
+  /* Truck item styles */
+  .truck-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* background-color: red; */
+    margin-left: 1%;
+    margin-right: 1%;
+    margin-top: 10px;
+    transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+    height: fit-content;
+  }
+  .truck-item:hover{
+    /* padding:3px;
+    border-radius: 7px; */
+    cursor: pointer;
+    background-color: rgb(235, 235, 235);
+  }
+  /* Truck info styles */
+  .truck-info {
+    font-size: small;
+  }
+  
+  
+  /* Trucks list styles */
+  .trucks-list {
+    display: flex;
+    /* flex-direction: column; */
+    width: 100%;
+    height: 61em;
+        overflow-y: auto;
+    padding-bottom: 3%;
+    border-radius: 7px;
+  }
+  
+
+  .car-details{
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .wideMe{
+    width: 100%;
+  }
+
+  .car-image{
+    width: 100%;
+    height: 10rem;
+  }
+
+  .all-tracks-title{
+    margin-bottom: 10%;
+    font-weight: 700;
+  }
+  
+  /* Hide scrollbars for all browsers */
+  .trucks-list::-webkit-scrollbar {
+    width: 0;
+    background: transparent; /* Chrome/Safari/Webkit */
+  }
+  
+  .trucks-list {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .trucks-list::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
+  }
+  
+
+
+  .model2{
+    display: flex;
+    height: 50%;
+  }
+
+  .modal-content2{
+    background-color: rgb(240, 239, 239);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+
+  .model-image{
+
+  }
+
+  .truck-modal-image{
+    width: 30em;
+    margin-right: 10px;
+
+  }
+  
+
+  .spinner{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+
+  .sel{
+    color: black !important;
+  }
+
+
+  .mm-holder{
+    display: flex;
+    align-items: center;
+    background-color: rgb(240, 239, 239);
+  }
+
+  .form-inner{
+    gap: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mm-holderw{
+    display: flex;
+    flex-direction: column;
+    width: -moz-fit-content;
+    width: fit-content;
+    align-items: center;
+    padding: 4em;
+    background-color: #e4e4e7;
+    border-radius: 1rem;
+  }
+
+
+  .select-truck{
+    width: 100%;
+    margin-bottom: 1%;
+  }
+.add-truck-btn2{
+  height: 10%;
+}
+
+  .add-truck-btn{
+    width: 100%;
+    margin-top: 5%;
+    margin-bottom: 2%;
+  }
+  .modal-content29{
+    color: black;
+    display: flex;
+  
+    flex-direction: column;
+  }
+  .assign-truck-btn{
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  
+
+  .addtrucks{
+    z-index: 222;
+    display: flex;
+    flex-direction: column;
+  }

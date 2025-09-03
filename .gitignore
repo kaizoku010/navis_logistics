@@ -1,0 +1,11 @@
+node_modules/
+.history/
+.vercel/
+server/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+server/.env
+src/config/serviceAccountKey.json

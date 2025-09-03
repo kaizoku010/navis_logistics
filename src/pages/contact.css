@@ -1,0 +1,51 @@
+.contact-us{
+    display: flex;
+    /* background-color: red; */
+    align-items: center;
+    width: 100%;
+
+    flex-direction: column;
+    justify-content: center;
+}
+
+.sales-talk{
+    font-size: 2.5rem;
+    line-height: 3.25rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant-numeric: unset;
+    margin-bottom: .5rem;
+
+}
+
+.look{
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    width: 35%;
+    text-align: center;
+    text-transform: none;
+    margin-bottom: 1%;
+    font-variant-numeric: unset;
+}
+
+
+.demo-btn{
+    margin-bottom: .5%;
+    width: 20%;
+    background-color: #216df0;
+    color:whitesmoke
+
+}
+
+.demo-btn:hover{
+    background-color: #e3effb;
+    color: #216df0;
+
+}
+
+.req-call{
+    width: 20% !important;
+}

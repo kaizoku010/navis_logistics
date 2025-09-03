@@ -1,0 +1,43 @@
+.item-card{
+    /* background-color: orange; */
+    margin-top: 0%;
+    margin-bottom: 2%;
+    border-bottom: 1px solid #cfcfcf;
+
+}
+
+.ic-title-item{
+    display: flex;
+    margin-bottom: 10px;
+flex-direction: column;
+/* background-color: aquamarine; */
+}
+
+
+.ic-title-item2{
+    display: flex;
+
+    align-items: center;
+
+    place-content: space-between;
+}
+
+/* .item-name{
+    margin-left: 2%;
+} */
+
+.item-number{
+    font-weight: 600;
+    margin-left: 2%;
+    color: #566a7f;
+    background-color: white;
+}
+
+
+.icon2{
+color: white;
+}
+
+.total-order > h5{
+    margin: 0%;
+}

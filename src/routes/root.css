@@ -1,0 +1,22 @@
+.container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  #sidebar {
+    padding: 20px;
+    background-color: #f4f4f4; /* Adjust the background color as needed */
+    overflow-y: auto; /* Allow sidebar to scroll if content overflows */
+  }
+  
+  #detail {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  
+  .content {
+    padding: 20px; /* Adjust the padding as needed */
+    height: 100%;
+    box-sizing: border-box;
+  }
+  

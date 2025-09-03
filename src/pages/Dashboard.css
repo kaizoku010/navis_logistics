@@ -1,0 +1,111 @@
+.dash-des{
+    height: 100vh;
+}
+.cargo-mover-data {
+    display: flex;
+    width: 30rem;
+    text-align: right;
+    flex-direction: column;
+}
+
+
+.header{
+    width: 100%;
+    padding: 3%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    border-radius: 7px;
+    background-color: rgb(245, 245, 240);
+    margin-bottom: 10px;
+    justify-content: space-between;
+    color: white;
+    /* background-color: rgb(189, 81, 81); */
+}
+
+.user_info_{
+    /* background-color: red; */
+}
+
+.c_userName{
+
+}
+
+
+.c_userComp{
+    font-size: small;
+    color: gray;
+    margin: 0px;
+}
+.userImage{
+    width: 3rem;
+    height: 3.1rem;
+    border-radius: 50px;
+margin-left: 2%;
+}
+
+.userComp{
+    font-size: 12px;
+    margin-top: -5px;
+    color: gray;
+    text-align: right;
+
+}
+
+.name_user_image{
+    color: black;
+    justify-content: right;
+    /* background-color: blue; */
+    display: inherit;
+    align-items: center;
+}
+
+.userName{
+    font-weight: 500;
+    float: right;
+    text-transform: uppercase;
+}
+
+.input_search{
+    border-color: none !important;
+    border-style:  none !important;
+    box-shadow: transparent !important;
+
+}
+
+.top-content{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* background-color: black; */
+}
+
+.div-left{
+    width: 60%;
+    gap: 1%;
+    border-radius: 7px;
+    padding: 2%;
+    background-color: rgb(245, 245, 240);
+    height: 100%;
+}
+
+.boxes{
+    width:40%;
+    padding: 2%;
+gap: 1%;
+justify-content: center;
+height: 100%;
+    display: flex;
+        background-color: rgb(245, 245, 240);
+        border-radius: 7px;
+    flex-direction: column;
+}
+
+.div-right{
+    gap: 1%;
+
+    display: flex;
+    flex-direction: row;
+}

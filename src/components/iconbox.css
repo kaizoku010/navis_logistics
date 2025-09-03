@@ -1,0 +1,54 @@
+.ic-box{
+ /* width: 50%; */
+ border-radius: 7px; 
+ margin: .5%;
+ box-shadow: 0 2px 6px 0 rgba(67, 89, 113, 0.12);
+ /* padding: 8%; */
+ height: fit-content;  
+background-color: white;
+ background-size: cover;
+ background-position: center;
+ display: flex;
+ justify-content: space-between;
+ width: 100%;
+}
+
+.ic_box_text{
+    display: flex;
+    padding: 8%;
+    flex-direction: column;
+}
+
+.ib-title{
+    color: #566a7f;
+    font-size: small;
+    font-weight: 800;
+    width: 10rem;
+}
+
+.ib-numbers{
+font-size: medium;
+color: #566a7f;
+}
+
+.ic_box_image_holder{
+display: flex;
+flex-direction: column;
+align-items: end;
+padding-right: 10%;
+
+justify-content: space-between;
+}
+
+
+.spacer{
+    height: 50px;
+    float: right;
+    width: 20%;
+    /* background-color: red; */
+}
+
+.ic_box_img{
+    float: right;
+    width: 30%;
+}
