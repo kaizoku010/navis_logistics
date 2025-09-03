@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import { GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 import './maps2.css';
 
 const containerStyle = {
@@ -9,7 +9,6 @@ const containerStyle = {
 
 const Maps2 = ({ pickupCoords, destinationCoords }) => {
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  const [map, setMap] = useState(null);
 
   const handleDirectionsCallback = useCallback((response) => {
     if (response && response.status === 'OK') {
@@ -25,7 +24,6 @@ const Maps2 = ({ pickupCoords, destinationCoords }) => {
         mapContainerStyle={containerStyle}
         zoom={16}
         center={pickupCoords}
-        onLoad={mapInstance => setMap(mapInstance)}
       >
         {pickupCoords && <Marker position={pickupCoords} />}
         {destinationCoords && <Marker position={destinationCoords} />}

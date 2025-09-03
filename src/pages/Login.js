@@ -24,18 +24,27 @@ function Login() {
 
     const autoLogin = async (savedUsername, savedPassword) => {
       try {
+        console.log("Attempting auto-login for user:", savedUsername);
         const user = await loginUser(savedUsername, savedPassword);
         if (user) {
+          console.log("Auto-login successful, navigating to dashboard");
           navigateToDashboard(user);
         } else {
-          console.error("Invalid saved credentials");
+          console.error("Auto-login failed: Invalid saved credentials");
           localStorage.removeItem('username');
           localStorage.removeItem('password');
+          setError("Auto-login failed. Please login manually.");
         }
       } catch (err) {
         console.error("Error during auto-login:", err);
+        console.error("Auto-login error details:", {
+          message: err.message,
+          name: err.name,
+          stack: err.stack
+        });
         localStorage.removeItem('username');
         localStorage.removeItem('password');
+        setError("Auto-login failed. Please login manually.");
       }
     };
   
@@ -57,19 +66,41 @@ function Login() {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
+      console.log("Login form submitted for user:", username);
+      
+      if (!username || !password) {
+        setError("Please enter both username and password");
+        return;
+      }
+      
       try {
         const user = await loginUser(username, password);
         if (user) {
+          console.log("Login successful, saving credentials and navigating to dashboard");
           // Save credentials locally
           localStorage.setItem('username', username);
           localStorage.setItem('password', password);
           navigateToDashboard(user);
         } else {
-          setError("Invalid username or password");
+          console.error("Login failed: Invalid username or password");
+          setError("Invalid username or password. Please try again.");
         }
       } catch (error) {
-        console.error("Error logging in", error);
-        setError("Error logging in. Please try again.");
+        console.error("Error during login attempt:", error);
+        console.error("Login error details:", {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+        
+        // Provide more specific error messages
+        if (error.message.includes('Network error')) {
+          setError("Network error: Unable to connect to the server. Please check your internet connection and try again.");
+        } else if (error.message.includes('Login failed')) {
+          setError(`Login failed: ${error.message}`);
+        } else {
+          setError("Error logging in. Please try again later.");
+        }
       }
     };
 

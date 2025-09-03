@@ -10,7 +10,7 @@ export const AWSProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [trucks, setTrucks] = useState([]);
   const [allTrucks, setAllTrucks] = useState([]);
-  const [requests, setRequest] = useState([]);
+  const [requests, /*setRequest*/] = useState([]); // setRequest is unused
   const [drivers, setDrivers] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [deliveries, setDeliveries] = useState([]);
@@ -192,14 +192,30 @@ export const AWSProvider = ({ children }) => {
   const loginUser = async (username, password) => {
     setLoading(true);
     try {
-        const userData = await api.login(username, password);
-        setUser(userData);
-        return userData;
+      console.log("Attempting to login user:", username);
+      const userData = await api.login(username, password);
+      console.log("Login successful, setting user data");
+      setUser(userData);
+      return userData;
     } catch (error) {
-        console.log("login error:", error.message);
-        return null;
+      console.error("Login error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      
+      // Provide more specific error messages
+      if (error.message.includes('Network error')) {
+        console.error("Network connectivity issue detected during login");
+      } else if (error.message.includes('401')) {
+        console.error("Authentication failed - invalid credentials");
+      } else if (error.message.includes('500')) {
+        console.error("Server error occurred during login");
+      }
+      
+      return null;
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 

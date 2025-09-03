@@ -8,7 +8,7 @@ import Maps from "../../pages/Maps";
 import { format } from 'date-fns';
 
 const Review = () => {
-  const { details, address, next, prev } = useContext(MultiStepFormContext);
+  const { details, address, prev } = useContext(MultiStepFormContext);
   const [truckInfo, setTruckInfo] = useState(null);
   const [coords, setCoords] = useState({ pickupCoords: null, destinationCoords: null });
   const { allTrucks, fetchAllTrucks, saveNonUserRequests } = useAWS();
@@ -26,7 +26,7 @@ const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
 
 useEffect(() => {
     fetchAllTrucks().catch(() => setFetchError(true));
-  }, []);
+  }, [fetchAllTrucks]);
 
   useEffect(() => {
     const getTruckInfo = async () => {
@@ -108,7 +108,6 @@ useEffect(() => {
       const data = {
         company: company,
         contact: details.contact,
-        date: new Date().toISOString(),
         destination: address.destination,
         destinationCoords: {
           lng: { N: String(coords.destinationCoords.lng) },
@@ -132,14 +131,6 @@ useEffect(() => {
     } catch {
       // Handle error
     }
-  };
-
-  const generateUID = () => {
-    return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      var r = (Math.random() * 16) | 0,
-        v = c == 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
   };
 
   useEffect(() => {

@@ -5,7 +5,7 @@ import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } 
 function Maps({ coordinates }) {
 
   // console.log("corrds: ", coordinates)
-  const API_KEY = "AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0";
+  // const API_KEY = "AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0";
   const [directions, setDirections] = useState(null);
   const [markers, setMarkers] = useState({ pickup: coordinates.pickup, destination: coordinates.destination });
   const mapRef = useRef(null);

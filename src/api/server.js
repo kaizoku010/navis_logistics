@@ -2,23 +2,25 @@
 // This version maintains compatibility with browser environment
 import { v4 as uuidv4 } from 'uuid';
 
-// In a fully integrated solution, we would need to run a separate backend service
-// For now, we'll keep the HTTP client approach but make it configurable
-
-// Default to the original external API endpoint
-let apiEndpoint = process.env.REACT_APP_API_ENDPOINT || 'https://navis-api.onrender.com';
+// Use local server endpoint for integrated architecture
+let apiEndpoint = process.env.REACT_APP_API_ENDPOINT || 'http://localhost:3001';
+console.log("API Endpoint configured as:", apiEndpoint);
 
 // API Functions (replacing direct MongoDB calls with HTTP requests)
 const api = {
   // Set custom endpoint (useful for local development)
   setEndpoint: (endpoint) => {
+    console.log("API endpoint changed from", apiEndpoint, "to", endpoint);
     apiEndpoint = endpoint;
   },
 
   // Authentication
   login: async (username, password) => {
     try {
-      const response = await fetch(`${apiEndpoint}/login`, {
+      const url = `${apiEndpoint}/login`;
+      console.log("Attempting login to:", url);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,15 +28,31 @@ const api = {
         body: JSON.stringify({ username, password }),
       });
 
+      console.log("Login response status:", response.status);
+      
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP error! Status: ${response.status}, Response: ${errorText}`);
+        console.error("Login failed with status:", response.status, "Response:", errorText);
+        throw new Error(`Login failed: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log("Login successful for user:", username);
       return data;
     } catch (error) {
       console.error("Error logging in:", error.message);
+      console.error("Error details:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        cause: error.cause
+      });
+      
+      // More detailed error handling
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error('Network error: Unable to connect to the server. Please check your internet connection and server status.');
+      }
+      
       throw error;
     }
   },

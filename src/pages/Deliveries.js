@@ -18,11 +18,11 @@ function Deliveries() {
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  const [map, setMap] = useState(null);
   const [notification, setNotification] = useState('');
+  
   useEffect(() => {
     fetchNonUserDeliveries();
-  }, []);
+  }, [fetchNonUserDeliveries]);
 
   const filteredDeliveries = non_user_requests?.filter(req => req.company === user.company && req?.status === "pending");
 
@@ -48,7 +48,7 @@ function Deliveries() {
     };
 
     fetchData();
-  }, []);
+  }, [fetchDeliveriesFromAPI]);
 
   const handleDirectionsCallback = useCallback((response) => {
     if (response && response.status === 'OK') {
@@ -121,7 +121,6 @@ function Deliveries() {
               mapContainerStyle={containerStyle}
               zoom={16}
               center={selectedDelivery.pickupCoords}
-              onLoad={mapInstance => setMap(mapInstance)}
             >
               <Marker position={selectedDelivery.pickupCoords} />
               <Marker position={selectedDelivery.destinationCoords} />

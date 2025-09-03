@@ -39,15 +39,33 @@ const client = new MongoClient(uri, {
 
 async function connectToDatabase() {
   try {
+    console.log("Attempting to connect to MongoDB at:", uri);
     await client.connect();
     await client.db("navis_db").command({ ping: 1 });
-    console.log("Connected to MongoDB");
+    console.log("Connected to MongoDB successfully");
+    return true;
   } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
+    console.error("Error connecting to MongoDB:", error.message);
+    console.error("Continuing to start server without database connection...");
+    return false;
   }
 }
 
-connectToDatabase().catch(console.dir);
+// Store database connection status
+let databaseConnected = false;
+
+connectToDatabase().then(result => {
+  databaseConnected = result;
+}).catch(console.dir);
+
+// Add a health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    databaseConnected: databaseConnected,
+    timestamp: new Date().toISOString()
+  });
+});
 
 // API Routes (same as original server/index.js)
 app.get('/deliveries', async (req, res) => {

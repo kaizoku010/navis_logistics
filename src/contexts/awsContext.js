@@ -20,7 +20,7 @@ export const AWSProvider = ({ children }) => {
   const [user, setUser] = useState(null); // User state
   const [trucks, setTrucks] = useState([]);
   const [allTrucks, setAllTrucks] = useState([]);
-  const [requests, setRequest] = useState()
+  const [requests, /*setRequest*/] = useState(); // setRequest is unused
   const [drivers, setDrivers] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [deliveries, setDeliveries] = useState([]);
@@ -322,13 +322,35 @@ export const AWSProvider = ({ children }) => {
 
 
   return (
-    <AWSContext.Provider value={{  fetchDeliveriesFromDynamoDB, 
-      deliveries,assignments,allTrucks,fetchAllTrucks,fetchAssignmentsFromDynamoDB,
-      saveNonUserRequets, requests, fetchNonRequestFromDynamoDB,
-      non_user_requests, fetchNonUSerDeliveries, updateDeliveryStatus,
-      saveAssignmentToDynamoDB,fetchTrucksFromDynamoDB,fetchDriversFromDynamoDB, 
-      saveDriverDataToDynamoDB, uploadDriverImageToS3, loading, drivers,saveTruckDataToDynamoDB,
-      fetchTrucksFromDynamoDB,user, registerUser, loginUser, logoutUser, uploadTrackToS3, uploadImageToS3, trucks, user }}>
+    <AWSContext.Provider value={{  
+      fetchDeliveriesFromDynamoDB, 
+      deliveries,
+      assignments,
+      allTrucks,
+      fetchAllTrucks,
+      fetchAssignmentsFromDynamoDB,
+      saveNonUserRequets, 
+      requests, 
+      fetchNonRequestFromDynamoDB,
+      non_user_requests, 
+      fetchNonUSerDeliveries, 
+      updateDeliveryStatus,
+      saveAssignmentToDynamoDB,
+      fetchTrucksFromDynamoDB,  // Keep only one instance
+      fetchDriversFromDynamoDB, 
+      saveDriverDataToDynamoDB, 
+      uploadDriverImageToS3, 
+      loading, 
+      drivers,
+      saveTruckDataToDynamoDB,
+      registerUser, 
+      loginUser, 
+      logoutUser, 
+      uploadTrackToS3, 
+      uploadImageToS3, 
+      trucks, 
+      user  // Keep only one instance
+    }}>
       {children}
     </AWSContext.Provider>
   );

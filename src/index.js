@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {
   createBrowserRouter,
@@ -18,7 +17,6 @@ import Customers from './pages/Customers';
 import Shipments from './pages/Shipments';
 import RegCustomer from './pages/RegCustomer';
 import AddTruck from './pages/AddTruck';
-import Maps from './pages/Maps';
 import { AWSProvider, useAWS } from './contexts/MongoContext.js';
 import TruckManagement from './pages/TruckManagement';
 import CargoMoverDash from "./pages/CargoMoverDash"

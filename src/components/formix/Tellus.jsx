@@ -8,22 +8,8 @@ import "./mulitstep.css";
 
 const Details = () => {
   const [markers, setMarkers] = useState({ pickup: null, destination: null });
-  const [directions, setDirections] = useState(null);
   const { address, setAddress, next, prev } = useContext(MultiStepFormContext);
   const API_KEY = 'AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0';
-
-  const handleLoadDirections = (delivery) => {
-    const { pickupCoords, destinationCoords } = delivery;
-    setDirections({
-      origin: pickupCoords,
-      destination: destinationCoords,
-      travelMode: 'DRIVING',
-    });
-    setMarkers({
-      pickup: pickupCoords,
-      destination: destinationCoords,
-    });
-  };
 
   const getCoordinates = async (address) => {
     try {
