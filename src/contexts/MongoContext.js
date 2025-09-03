@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import api from '../api/server'; // Import our integrated API
 
 const AWSContext = createContext();

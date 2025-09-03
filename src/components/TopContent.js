@@ -104,8 +104,8 @@ navigation("/sales")
 
   <div className='twg-images'> 
 
-<img className='twg-image-one' src={Lady}/>
-<img className='twg-image-one2' src={Lady2}/>
+<img className='twg-image-one' src={Lady} alt="Lady" />
+<img className='twg-image-one2' src={Lady2} alt="Lady 2" />
 
   </div>
   </div>
@@ -145,9 +145,9 @@ navigation("/sales")
       </div>
       <div className='hero_section3' style={{ backgroundColor: bgColor }}>
       <div className='right_map2'>
-      <img className='manage_drivers' src={Map_} />    
+      <img className='manage_drivers' src={Map_} alt="Map showing driver routes" />    
 
-<img className='manage_drivers' src={Map_2} />    
+<img className='manage_drivers' src={Map_2} alt="Map showing delivery tracking" />    
 
       </div>
 
@@ -204,7 +204,7 @@ navigation("/sales")
 <h4 className='getStarted-title'>GET STARTED</h4>
 <h4 className='reduce-text'>Reduce your delivery costs by 20% with Navis AI</h4>
   <button onClick={start} className='start-here'>Start Here</button>
-      <img className='shipment-image' src={TruckerMap}/>
+      <img className='shipment-image' src={TruckerMap} alt="Truckers on a map" />
    </div>
 <Footer/>
   

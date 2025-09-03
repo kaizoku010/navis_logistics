@@ -63,7 +63,7 @@ return <div className='dash-des'>
   </div>
  
 
-  <img className='userImage' src={user?.imageUrl}/>
+  <img className='userImage' src={user?.imageUrl} alt="User profile" />
 </div>
 </div>
 {/* others */}

@@ -12,8 +12,12 @@ module.exports = function override(config, env) {
     "dns": false,
     "net": false,
     "tls": false,
-    "child_process": false, // Add this line
-    "timers/promises": false // Added this line already
+    "child_process": false,
+    "timers/promises": false,
+    // Add MongoDB related modules that don't work in browser
+    "mongodb": false,
+    "bson": false,
+    "util": false
   };
 
   return config;
