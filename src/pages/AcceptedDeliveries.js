@@ -1,36 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { useAWS } from '../contexts/MongoContext';
+import { useDatabase } from '../contexts/DatabaseContext';
+import { useAuth } from '../contexts/AuthContext';
 import Maps from './NewMap'; // Adjust the import path as necessary
 import './accepted_deliveries.css';
 import { Steps, Button } from 'antd';
 
 const AcceptedDeliveries = () => {
-  const { fetchNonUserDeliveries, non_user_requests, user } = useAWS();
+  const { nonUserDeliveries, loading, fetchNonUserDeliveriesFromAPI } = useDatabase();
+  const { user } = useAuth();
   const [acceptedDeliveries, setAcceptedDeliveries] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedDelivery, setSelectedDelivery] = useState(null);
 
   // Fetch deliveries on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await fetchNonUserDeliveries();
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching deliveries:", error);
-        setLoading(false);
-      }
-    };
-    fetchData();
+    fetchNonUserDeliveriesFromAPI();
   }, []);
 
   // Filter and set accepted deliveries
   useEffect(() => {
-    if (!loading && non_user_requests) {
-      const filteredDeliveries = non_user_requests.filter(req => req.company === user.company && req.status === "accepted");
+    if (!loading && nonUserDeliveries) {
+      const filteredDeliveries = nonUserDeliveries.filter(req => req.company === user.company && req.status === "accepted");
       setAcceptedDeliveries(filteredDeliveries);
     }
-  }, [loading, non_user_requests, user.company]);
+  }, [loading, nonUserDeliveries, user.company]);
 
   const handleShowRoute = (delivery) => {
     setSelectedDelivery(delivery);

@@ -13,8 +13,9 @@ import {
 } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
-import PlacesAutocomplete from 'react-places-autocomplete';
-import { useAWS } from '../contexts/MongoContext';
+import PlacesAutocomplete from 'react-places-autocomplete'; 
+import { useDatabase } from '../contexts/DatabaseContext';
+import { useAuth } from '../contexts/AuthContext';
 
 import "./shipments.css";
 
@@ -35,15 +36,20 @@ const containerStyle = {
   height: '100%',
 };
 
-const API_KEY = 'AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0';
+const API_KEY = process.env.REACT_APP_FIREBASE_API_KEY;
 
 const Shipments = () => {
-  const { user, apiClient,
-    getDeliveries,
-    makeDeliveries,
+  const { 
+    user,
+   } = useAuth(); // Access user and API client
+  const {
+    deliveries,
+    loading,
+    fetchDeliveriesFromAPI,
+    saveDeliveryToAPI,
     fetchTrucksFromAPI,
     trucks,
-    userDeliveries, } = useAWS(); // Access user and API client
+  } = useDatabase();
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -55,8 +61,6 @@ const Shipments = () => {
     pickupPoint: '',
     contact: '',
   });
-  const [deliveries, setDeliveries] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [directions, setDirections] = useState(null);
   const [markers, setMarkers] = useState({ pickup: null, destination: null });
   const mapRef = useRef(null);
@@ -83,14 +87,11 @@ const Shipments = () => {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-
     const pickupCoords = await getCoordinates(form.pickupPoint);
     const destinationCoords = await getCoordinates(form.destination);
 
     if (!pickupCoords || !destinationCoords) {
       console.error('Error fetching coordinates');
-      setLoading(false);
       return;
     }
 
@@ -105,28 +106,26 @@ const Shipments = () => {
     };
 
     try {
-      await makeDeliveries(newItem); 
-      setDeliveries((prevDeliveries) => [...prevDeliveries, newItem]);
+      await saveDeliveryToAPI(newItem); 
+      fetchDeliveriesFromAPI();
       handleClose();
     } catch (error) {
       console.error('Error saving delivery', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchDeliveries = async () => {
-    try {
-      const response = await getDeliveries; 
-      const filteredDeliveries = response.data.filter(delivery => delivery.company === user.company);
-      setDeliveries(filteredDeliveries);
-    } catch (error) {
-      console.error('Error fetching deliveries', error);
-    }
-  };
+  // useEffect(() => {
+  //   fetchDeliveriesFromAPI();
+  //   fetchTrucksFromAPI();
+  // }, []);
+
+ useEffect(() => {
+    fetchDeliveriesFromAPI();
+    fetchTrucksFromAPI();
+  }, [])
 
   useEffect(() => {
-    fetchDeliveries();
+    // fetchDeliveries();
     fetchTrucksFromAPI();
 
   }, [trucks]);

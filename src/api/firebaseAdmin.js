@@ -2,16 +2,27 @@
 // Note: Firebase Admin SDK is server-side only, so we'll use client-side Firebase instead
 
 // We'll use the client-side Firebase instead of Firebase Admin
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { app } from '../contexts/firebaseContext'; // Import the initialized Firebase app
+import {
+    storage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    firestore,
+    collection,
+    addDoc,
+    
+    getDocs,
+    doc,
+    getDoc,
+    updateDoc,
+    deleteDoc
+} from '../contexts/firebaseContext';
 
 // Firebase Client Functions (replacing Firebase Admin functionality)
 export const firebaseClient = {
   // Storage operations
   uploadFile: async (file, fileName, folder = 'uploads') => {
     try {
-      const storage = getStorage(app);
       const storageRef = ref(storage, `${folder}/${fileName}`);
       
       const snapshot = await uploadBytes(storageRef, file);
@@ -27,15 +38,13 @@ export const firebaseClient = {
   // Firestore operations
   saveToFirestore: async (collectionName, documentData, documentId = null) => {
     try {
-      const db = getFirestore(app);
-      
       let docRef;
       if (documentId) {
-        const docRefInstance = doc(db, collectionName, documentId);
+        const docRefInstance = doc(firestore, collectionName, documentId);
         await updateDoc(docRefInstance, documentData);
         docRef = { id: documentId };
       } else {
-        docRef = await addDoc(collection(db, collectionName), documentData);
+        docRef = await addDoc(collection(firestore, collectionName), documentData);
       }
       
       return { success: true, id: docRef.id };
@@ -47,16 +56,14 @@ export const firebaseClient = {
 
   getFromFirestore: async (collectionName, documentId = null) => {
     try {
-      const db = getFirestore(app);
-      
       if (documentId) {
-        const docSnap = await getDoc(doc(db, collectionName, documentId));
+        const docSnap = await getDoc(doc(firestore, collectionName, documentId));
         if (!docSnap.exists()) {
           return null;
         }
         return { id: docSnap.id, ...docSnap.data() };
       } else {
-        const querySnapshot = await getDocs(collection(db, collectionName));
+        const querySnapshot = await getDocs(collection(firestore, collectionName));
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       }
     } catch (error) {
@@ -67,8 +74,7 @@ export const firebaseClient = {
 
   updateInFirestore: async (collectionName, documentId, updateData) => {
     try {
-      const db = getFirestore(app);
-      const docRef = doc(db, collectionName, documentId);
+      const docRef = doc(firestore, collectionName, documentId);
       await updateDoc(docRef, updateData);
       
       return { success: true };
@@ -80,8 +86,7 @@ export const firebaseClient = {
 
   deleteFromFirestore: async (collectionName, documentId) => {
     try {
-      const db = getFirestore(app);
-      await deleteDoc(doc(db, collectionName, documentId));
+      await deleteDoc(doc(firestore, collectionName, documentId));
       
       return { success: true };
     } catch (error) {

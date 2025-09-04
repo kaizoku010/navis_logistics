@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useAWS } from "../contexts/MongoContext";
+import { useDatabase } from "../contexts/DatabaseContext";
 
 const Tracks = () => {
-  const { fetchTrucksFromAPI, trucks } = useAWS();
+  const { fetchTrucksFromAPI, trucks } = useDatabase();
   const [currentPage, setCurrentPage] = useState(1); // Current page number
   const itemsPerPage = 9; 
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility

@@ -358,7 +358,7 @@ i {
 
 #detail {
   flex: 1;
-  padding: 2rem 2rem;
+  /* padding: 2rem 2rem; */
   width: 100%;
 }
 

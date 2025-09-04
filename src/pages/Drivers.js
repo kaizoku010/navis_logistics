@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAWS } from '../contexts/MongoContext';
+import { useDatabase } from '../contexts/DatabaseContext';
+import { useAuth } from '../contexts/AuthContext'; // Assuming AuthContext will be created
 import { useTable } from 'react-table';
 import './drivers.css';
 import Search from '../components/Search';
@@ -9,7 +10,8 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { storage, ref, uploadBytes, getDownloadURL } from "../contexts/firebaseContext"; // Adjust the import path accordingly
 
 function Drivers() {
-  const { fetchDriversFromAPI, user, saveDriverDataToAPI, uploadDriverImageToS3, loading, drivers, trucks, assignments } = useAWS();
+  const { fetchDriversFromAPI, saveDriverDataToAPI, loading, drivers, trucks, assignments } = useDatabase();
+  const { user } = useAuth(); // Assuming AuthContext will be created
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -145,7 +147,10 @@ function Drivers() {
     },
     {
       Header: 'Assigned Truck',
-      accessor: 'numberPlate',
+      accessor: 'uid',
+      Cell: ({ cell }) => (
+        <span>{getAssignedTruck(cell.row.original.uid)}</span>
+      )
     },
     {
       Header: 'Password',
@@ -167,7 +172,7 @@ function Drivers() {
     <div className='all-drivers-page'>
       <div className='add-driver'>
         <Search />
-        <button style={{width:"20%", borderRadius:"10px"}} className='' onClick={() => setIsModalOpen(true)}>Add Driver</button>
+        <Button style={{width:"20%", borderRadius:"10px"}} className='' onClick={() => setIsModalOpen(true)}>Add Driver</Button>
       </div>
       <div className='all-drivers'>
         <table {...getTableProps()} className='drivers-table'>

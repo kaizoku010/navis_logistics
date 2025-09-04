@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useAWS } from '../contexts/MongoContext';
+import { useDatabase } from '../contexts/DatabaseContext';
+import { useAuth } from '../contexts/AuthContext';
 import Modal from 'react-modal';
 import { GoogleMap, Marker, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 import './deliver.css';
@@ -14,25 +15,31 @@ const containerStyle = {
 const API_KEY = 'AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0'; // Your API Key
 
 function Deliveries() {
-  const { fetchDeliveriesFromAPI, non_user_requests, loading, user, fetchNonUserDeliveries, updateDeliveryStatus } = useAWS();
+  const { 
+    nonUserDeliveries, 
+    loading, 
+    fetchNonUserDeliveriesFromAPI, 
+    updateDeliveryStatusInAPI 
+  } = useDatabase();
+  const { user } = useAuth();
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [notification, setNotification] = useState('');
   
   useEffect(() => {
-    fetchNonUserDeliveries();
-  }, [fetchNonUserDeliveries]);
+    fetchNonUserDeliveriesFromAPI();
+  }, [fetchNonUserDeliveriesFromAPI]);
 
-  const filteredDeliveries = non_user_requests?.filter(req => req.company === user.company && req?.status === "pending");
+  const filteredDeliveries = nonUserDeliveries?.filter(req => req.company === user.company && req?.status === "pending");
 
   const handleAcceptDelivery = async () => {
     if (selectedDelivery) {
-      await updateDeliveryStatus(selectedDelivery.uid, "accepted");
+      await updateDeliveryStatusInAPI(selectedDelivery.uid, "accepted");
       setNotification('Delivery accepted successfully!');
       setTimeout(() => setNotification(''), 3000); // Clear the notification after 3 seconds
       closeModal();
-      await fetchNonUserDeliveries();
+      await fetchNonUserDeliveriesFromAPI();
     }
   };
 
@@ -41,14 +48,6 @@ function Deliveries() {
     googleMapsApiKey: API_KEY,
     libraries: ['places']
   });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchDeliveriesFromAPI();
-    };
-
-    fetchData();
-  }, [fetchDeliveriesFromAPI]);
 
   const handleDirectionsCallback = useCallback((response) => {
     if (response && response.status === 'OK') {

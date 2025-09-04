@@ -2,52 +2,24 @@ import React, { useState, useEffect } from 'react';
 import Logo from "../assets/logo2.png";
 import "./logic.css";
 import { useNavigate } from 'react-router-dom';
-import { useAWS } from '../contexts/MongoContext';
+import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const { loading, loginUser } = useAWS();
+  const { loading, login, user } = useAuth();
   const navigate = useNavigate();
 
 
 
     useEffect(() => {
-      const savedUsername = localStorage.getItem('username');
-      const savedPassword = localStorage.getItem('password');
-      if (savedUsername && savedPassword) {
-        autoLogin(savedUsername, savedPassword);
-      }
-    }, []);
-
-
-    const autoLogin = async (savedUsername, savedPassword) => {
-      try {
-        console.log("Attempting auto-login for user:", savedUsername);
-        const user = await loginUser(savedUsername, savedPassword);
         if (user) {
-          console.log("Auto-login successful, navigating to dashboard");
-          navigateToDashboard(user);
-        } else {
-          console.error("Auto-login failed: Invalid saved credentials");
-          localStorage.removeItem('username');
-          localStorage.removeItem('password');
-          setError("Auto-login failed. Please login manually.");
+            navigateToDashboard(user);
         }
-      } catch (err) {
-        console.error("Error during auto-login:", err);
-        console.error("Auto-login error details:", {
-          message: err.message,
-          name: err.name,
-          stack: err.stack
-        });
-        localStorage.removeItem('username');
-        localStorage.removeItem('password');
-        setError("Auto-login failed. Please login manually.");
-      }
-    };
-  
+    }, [user]);
+
+
     const navigateToDashboard = (user) => {
       switch (user.accountType) {
         case 'root':
@@ -66,39 +38,27 @@ function Login() {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
-      console.log("Login form submitted for user:", username);
       
-      if (!username || !password) {
-        setError("Please enter both username and password");
+      if (!email || !password) {
+        setError("Please enter both email and password");
         return;
       }
       
       try {
-        const user = await loginUser(username, password);
+        const user = await login(email, password);
         if (user) {
-          console.log("Login successful, saving credentials and navigating to dashboard");
-          // Save credentials locally
-          localStorage.setItem('username', username);
-          localStorage.setItem('password', password);
           navigateToDashboard(user);
         } else {
-          console.error("Login failed: Invalid username or password");
           setError("Invalid username or password. Please try again.");
         }
       } catch (error) {
         console.error("Error during login attempt:", error);
-        console.error("Login error details:", {
-          message: error.message,
-          name: error.name,
-          stack: error.stack
-        });
-        
-        // Provide more specific error messages
-        if (error.message.includes('Network error')) {
-          setError("Network error: Unable to connect to the server. Please check your internet connection and try again.");
-        } else if (error.message.includes('Login failed')) {
-          setError(`Login failed: ${error.message}`);
-        } else {
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+            setError("Invalid username or password. Please try again.");
+        } else if (error.code === 'auth/network-request-failed') {
+            setError("Network error: Unable to connect to the server. Please check your internet connection and try again.");
+        }
+        else {
           setError("Error logging in. Please try again later.");
         }
       }
@@ -119,11 +79,11 @@ function Login() {
       <img className='navis-logo' src={Logo} alt="Logo" />
       <form className='navis-form' onSubmit={handleSubmit}>
         <input
-          type="text"
-          placeholder="Username"
-          value={username}
+          type="email"
+          placeholder="Email"
+          value={email}
           className='nav-input'
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"

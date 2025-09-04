@@ -6,7 +6,8 @@ import IconBox from '../components/IconBox';
 import Graph from '../components/Graph';
 import Search from '../components/Search';
 import pp from "../assets/pp.jpg"
-import { useAWS} from '../contexts/MongoContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useDatabase } from '../contexts/DatabaseContext';
 import OrderStats from '../components/OrderStats';
 import IncomeStats from '../components/IncomeStats';
 import Transactions from '../components/Transactions';
@@ -14,11 +15,12 @@ import DriverIc from "../assets/drv.png"
 import Trucks from  "../assets/vv.png"
 
 function TruckOwnerDash() {
-  const { user,  trucks, drivers, non_user_requests  } = useAWS();
+  const { user } = useAuth();
+  const { trucks, drivers, nonUserDeliveries } = useDatabase();
 
   const getSortedDeliveriesByCompany = () => {
-    if (!non_user_requests || !user) return [];
-    return non_user_requests
+    if (!nonUserDeliveries || !user) return [];
+    return nonUserDeliveries
       .filter(delivery => delivery.company === user.company && delivery.status ==="accepted" )
       .sort((a, b) => a.company.localeCompare(b.company)); // Sort by company name if needed
   };
@@ -26,23 +28,23 @@ function TruckOwnerDash() {
 
 
   const completedDeliveriesByCompany = () => {
-    if (!non_user_requests || !user) return [];
-    return non_user_requests
+    if (!nonUserDeliveries || !user) return [];
+    return nonUserDeliveries
       .filter(delivery => delivery.company === user.company && delivery.status ==="completed" )
       .sort((a, b) => a.company.localeCompare(b.company)); // Sort by company name if needed
   };
 
 
   const declinedDeliveriesByCompany = () => {
-    if (!non_user_requests || !user) return [];
-    return non_user_requests
+    if (!nonUserDeliveries || !user) return [];
+    return nonUserDeliveries
       .filter(delivery => delivery.company === user.company && delivery.status ==="declined" )
       .sort((a, b) => a.company.localeCompare(b.company)); // Sort by company name if needed
   };
 
   const pendingDeliveriesCompany = () => {
-    if (!non_user_requests || !user) return [];
-    return non_user_requests
+    if (!nonUserDeliveries || !user) return [];
+    return nonUserDeliveries
       .filter(delivery => delivery.company === user.company && delivery.status ==="pennding" ) || 0
   };
 
@@ -57,8 +59,7 @@ return <div className='dash-des'>
 <div className='name_user_image'>
   <div className='user_info_'>
    <p className='userName'>{user?.username}</p>
-  <p className='userComp'>{user?.company}</p>  
-  {/* <p className='userComp'>{user?.accountType}</p>   */}
+  <p className='userComp_'>{user?.company}</p>  
 
   </div>
  

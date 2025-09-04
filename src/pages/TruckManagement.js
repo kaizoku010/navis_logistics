@@ -1,30 +1,29 @@
 // src/components/TruckManagement.js
 
 import React, { useState, useEffect } from "react";
-import { useAWS } from "../contexts/MongoContext";
+import { useDatabase } from "../contexts/DatabaseContext";
+import { useAuth } from "../contexts/AuthContext";
 import "./TruckManagement.css";
 import { v4 as uuidv4 } from "uuid";
 import Maps from "../components/Maps2";
 import { Select } from "antd";
 import { storage, ref, uploadBytes, getDownloadURL } from "../contexts/firebaseContext"; // Adjust the import path accordingly
 
-
+import NoDataSvg from "../media/no_data.svg";
 
 function TruckManagement() {
   const {
     saveTruckDataToAPI,
     fetchTrucksFromAPI,
     fetchDriversFromAPI,
-    saveAssignmentToDynamoDB,
-    fetchAssignmentsFromDynamoDB,
+    saveAssignmentToAPI,
+    fetchAssignmentsFromAPI,
     trucks,
     drivers,
     assignments,
     loading,
-    uploadTrackToS3,
-    user,
-    newAssigments
-  } = useAWS();
+  } = useDatabase();
+  const { user } = useAuth();
 
 
   // console.log("ai class: ", useAI)
@@ -44,11 +43,12 @@ function TruckManagement() {
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [truckSpeed, setTruckSpeed] = useState()
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     fetchTrucksFromAPI();
     fetchDriversFromAPI();
-    fetchAssignmentsFromDynamoDB();
+    fetchAssignmentsFromAPI();
   }, []);
 
   
@@ -140,7 +140,7 @@ function TruckManagement() {
   
     try {
       // Upload a new image if one is provided
-      const imageUrl = truckImage ? await uploadTrackToS3(truckImage) : editTruck.imageUrl;
+      const imageUrl = truckImage ? await handleImageUpload(truckImage) : editTruck.imageUrl;
   
       // Prepare the updated truck data
       const updatedTruckData = {
@@ -190,11 +190,19 @@ console.log("selected truck: ", selectedDriver)
       return;
     }
 
+    setIsAssigning(true);
     try {
-      await newAssigments(selectedDriver, selectedTruck.numberPlate);
+      await saveAssignmentToAPI({
+        driverId: selectedDriver,
+        truckId: selectedTruck.uid,
+      });
+      fetchAssignmentsFromAPI(); // Re-fetch assignments
+      alert("Truck assigned successfully!");
     } catch (error) {
       console.error("Error assigning truck:", error.message);
       alert("Error assigning truck");
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -203,12 +211,12 @@ console.log("selected truck: ", selectedDriver)
     setIsDetailModalOpen(true);
   };
 
-  // const getAssignedDriver = (truckId) => {
-  //   const assignment = assignments?.find(a => a.truckId === truckId);
-  //   if (!assignment) return null;
-  //   const driver = drivers.find(d => d.uid === assignment.driverId);
-  //   return driver ? driver.name : null;
-  // };
+  const getAssignedDriver = (truckId) => {
+    const assignment = assignments?.find(a => a.truckId === truckId);
+    if (!assignment) return "None";
+    const driver = drivers.find(d => d.uid === assignment.driverId);
+    return driver ? driver.name : "Unknown Driver";
+  };
 
 
   return (
@@ -265,25 +273,34 @@ console.log("selected truck: ", selectedDriver)
 
           <div className="tm-map">
             <div className="wideMe">
-          {/* <p>All Your Trucks</p> */}
+          {/* <p>All Your Trucks</p> */} 
           <div className="trucks-list">
-            {trucks.map((truck) => (
-              <div key={truck.uid} className="truck-item" onClick={() => openTruckDetailsModal(truck)}>
-                <img className="car-image" src={truck.imageUrl} alt={truck.type} />
-                <div className="car-details">
-                  <h2>{truck.type}</h2>
-                  <p>Number Plate: {truck.numberPlate}</p>
-                  <p>Year of Manufacture: {truck.yearOfManufacture}</p>
-                  <p>Make: {truck.make}</p>
-                  <p>Mileage: {truck.mileage}</p>
-                  <p>Fuel Type: {truck.fuelType}</p>
-                  <p>Load: {truck.load}</p>
-                  <p>Speed: {truck.speed || ""}</p>
+            {loading ? (
+              <p>Loading...</p>
+            ) : trucks.length === 0 ? (
+              <div className="no-data-div">
+              <p className="no-data-text">Opps, No Trucks Found!</p>
+              <img className="no-data-img" src={NoDataSvg} alt="No data" />
 
-                  <p>Company: {truck.company || ""}</p>
-                </div>
               </div>
-            ))}
+            ) : (
+              trucks.map((truck) => (
+                <div key={truck.uid} className="truck-item" onClick={() => openTruckDetailsModal(truck)}>
+                  <img className="car-image" src={truck.imageUrl} alt={truck.type} />
+                  <div className="car-details">
+                    <h2>{truck.type}</h2>
+                    <p>Number Plate: {truck.numberPlate}</p>
+                    <p>Year of Manufacture: {truck.yearOfManufacture}</p>
+                    <p>Make: {truck.make}</p>
+                    <p>Mileage: {truck.mileage}</p>
+                    <p>Fuel Type: {truck.fuelType}</p>
+                    <p>Load: {truck.load}</p>
+                    <p>Speed: {truck.speed || ""}</p>
+                    <p>Company: {truck.company || ""}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
         </div>
@@ -373,7 +390,7 @@ console.log("selected truck: ", selectedDriver)
                 <p>Load: {selectedTruck.load}</p>
                 <p>speed: {selectedTruck.speed}</p>
 
-                {/* <p>Driver: {getAssignedDriver(selectedTruck.uid) || "None"}</p> */}
+                <p>Driver: {getAssignedDriver(selectedTruck.uid)}</p> 
 
                 <div className="spinner">
                   <label>Assign a driver from the options below.</label>
@@ -389,7 +406,9 @@ console.log("selected truck: ", selectedDriver)
     </option>
   ))}
 </Select>
-                  <button className="assign-truck-btn" onClick={handleAssignTruck}>Assign Truck</button>
+                  <button className="assign-truck-btn" onClick={handleAssignTruck} disabled={isAssigning}>
+                    {isAssigning ? 'Assigning...' : 'Assign Truck'}
+                  </button>
                 </div>
                 <button className="edit_truck" onClick={() => openEditModal(selectedTruck)}>Edit Truck</button>
                 <button onClick={() => setIsDetailModalOpen(false)}>Close</button>

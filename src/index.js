@@ -17,7 +17,8 @@ import Customers from './pages/Customers';
 import Shipments from './pages/Shipments';
 import RegCustomer from './pages/RegCustomer';
 import AddTruck from './pages/AddTruck';
-import { AWSProvider, useAWS } from './contexts/MongoContext.js';
+import { AuthProvider, useAuth } from './contexts/AuthContext.js';
+import { DatabaseProvider } from './contexts/DatabaseContext.js';
 import TruckManagement from './pages/TruckManagement';
 import CargoMoverDash from "./pages/CargoMoverDash"
 import TruckerDash from "./pages/TruckOwnerDash"
@@ -29,7 +30,7 @@ import Multi from './pages/Multi.js';
 import AcceptedDeliveries from './pages/AcceptedDeliveries.js';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useAWS();
+  const { user } = useAuth();
   if (!user || (!allowedRoles.includes(user.accountType) && user.accountType !== 'root')) {
     return <Navigate to="/" replace />;
   }
@@ -177,14 +178,13 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    
-    <AWSProvider>
-    <AIProvider>
-
-      <RouterProvider router={router} />
-      </AIProvider>
-
-    </AWSProvider>
+    <AuthProvider>
+      <DatabaseProvider>
+        <AIProvider>
+          <RouterProvider router={router} />
+        </AIProvider>
+      </DatabaseProvider>
+    </AuthProvider>
   </React.StrictMode>,
 );
 

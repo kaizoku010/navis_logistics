@@ -1,18 +1,21 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { useAWS } from '../contexts/MongoContext';
+import { useAuth } from '../contexts/AuthContext';
 import "./root.css"
 import { useNavigate } from "react-router-dom";
 
 export default function Root() {
-  const { user } = useAWS();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-const logout = ()=>{
-  localStorage.removeItem("username");
-  localStorage.removeItem("password");
-  navigate("/login"); 
-}
+const handleLogout = async () => {
+  try {
+    await logout();
+    navigate("/login");
+  } catch (error) {
+    console.error("Failed to log out", error);
+  }
+};
 
   return (
     <>
@@ -93,7 +96,7 @@ const logout = ()=>{
             </li>
 
             <li>
-              <Link onClick={logout}>Logout</Link>
+              <Link onClick={handleLogout}>Logout</Link>
             </li>
           </ul>
         </nav>

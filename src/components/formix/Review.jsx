@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import MultiStepFormContext from "./MultiStepFormContext";
 import "./mulitstep.css";
-import { useAWS } from "../../contexts/MongoContext";
+import { useDatabase } from "../../contexts/DatabaseContext";
 import Maps from "../../pages/Maps";
 import { format } from 'date-fns';
 
@@ -11,7 +11,7 @@ const Review = () => {
   const { details, address, prev } = useContext(MultiStepFormContext);
   const [truckInfo, setTruckInfo] = useState(null);
   const [coords, setCoords] = useState({ pickupCoords: null, destinationCoords: null });
-  const { allTrucks, fetchAllTrucks, saveNonUserRequests } = useAWS();
+  const { allTrucks, fetchAllTrucksFromAPI, saveNonUserRequestToAPI } = useDatabase();
   const [data, setData] = useState();
   const [numberPlate, setNumberPlate] = useState();
   const [company, setCompany] = useState();
@@ -25,8 +25,8 @@ console.log('ALL TRUCKS: ', allTrucks)
 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');  
 
 useEffect(() => {
-    fetchAllTrucks().catch(() => setFetchError(true));
-  }, [fetchAllTrucks]);
+    fetchAllTrucksFromAPI().catch(() => setFetchError(true));
+  }, [fetchAllTrucksFromAPI]);
 
   useEffect(() => {
     const getTruckInfo = async () => {
@@ -126,7 +126,7 @@ useEffect(() => {
         date:formattedDate
       };
 
-      await saveNonUserRequests(data);
+      await saveNonUserRequestToAPI(data);
       setRequestSaved(true);
     } catch {
       // Handle error
@@ -154,7 +154,7 @@ useEffect(() => {
 
   const retryFetch = () => {
     setFetchError(false);
-    fetchAllTrucks().catch(() => setFetchError(true));
+    fetchAllTrucksFromAPI().catch(() => setFetchError(true));
   };
 
   if (requestSaved) {

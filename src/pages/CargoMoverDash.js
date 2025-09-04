@@ -6,10 +6,10 @@ import IconBox from '../components/IconBox';
 import Graph from '../components/Graph';
 import Search from '../components/Search';
 import pp from "../assets/pp.jpg"
-import { useAWS} from '../contexts/MongoContext';
+import { useAuth } from '../contexts/AuthContext';
 
 function CargoMoverDash() {
-  const { user, logoutUser } = useAWS();
+  const { user } = useAuth();
 
   return <div className='dash-des'>
 

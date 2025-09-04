@@ -3,7 +3,7 @@ import Logo from "../assets/logo2.png";
 import "./logic.css";
 import "./reg.css";
 import { useNavigate } from "react-router-dom";
-import { useAWS } from '../contexts/MongoContext';
+import { useAuth } from '../contexts/AuthContext';
 import { storage, ref, uploadBytes, getDownloadURL } from "../contexts/firebaseContext"; // Adjust the import path accordingly
 
 function RegCustomer() {
@@ -13,7 +13,7 @@ function RegCustomer() {
   const [company, setCompany] = useState('');
   const [accountType, setAccountType] = useState('');
   const [imageFile, setImageFile] = useState(null);
-  const { loading, registerUser } = useAWS();
+  const { loading, register } = useAuth();
   const navigate = useNavigate();
 
   const handleImageUpload = async (file) => {
@@ -38,12 +38,12 @@ function RegCustomer() {
       try {
         const imageUrl = imageFile ? await handleImageUpload(imageFile) : "";
         console.log("image link", imageUrl)
-        await registerUser(username, email, company, password, accountType, imageUrl);
+        await register(email, password, username, company, accountType, imageUrl);
         alert('User registered successfully');
         navigate('/');
       } catch (error) {
         console.error('Error registering user', error);
-        alert('Error registering user');
+        alert(`Error registering user: ${error.message}`);
       }
     } else {
       alert('Input error, please try again');

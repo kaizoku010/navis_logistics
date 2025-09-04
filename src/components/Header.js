@@ -71,7 +71,7 @@ function Header() {
           {/* Header Title */}
         </div>
         <div className='contact-header'>
-                  <i class="fi fi-sr-phone-rotary"></i>
+                  <i className="fi fi-sr-phone-rotary"></i>
 <p>Talk to sales: (+256)-750-323-993</p>
         </div>
         <Link to="/sales" >

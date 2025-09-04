@@ -24,11 +24,19 @@
 }
 
 .user_info_{
+    margin-right: 1rem;
     /* background-color: red; */
 }
 
 .c_userName{
 
+}
+
+.userComp_ {
+    font-size: .8rem;
+    margin-top: -5px;
+    color: gray;
+    text-align: left;
 }
 
 
@@ -63,6 +71,8 @@ margin-left: 2%;
 .userName{
     font-weight: 500;
     float: right;
+    width: max-content;
+    width: -moz-max-content;
     text-transform: uppercase;
 }
 
