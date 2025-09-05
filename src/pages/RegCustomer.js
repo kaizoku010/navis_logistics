@@ -5,6 +5,7 @@ import "./reg.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../contexts/AuthContext';
 import { storage, ref, uploadBytes, getDownloadURL } from "../contexts/firebaseContext"; // Adjust the import path accordingly
+import { Modal } from 'antd';
 
 function RegCustomer() {
   const [username, setUsername] = useState("");
@@ -39,14 +40,31 @@ function RegCustomer() {
         const imageUrl = imageFile ? await handleImageUpload(imageFile) : "";
         console.log("image link", imageUrl)
         await register(email, password, username, company, accountType, imageUrl);
-        alert('User registered successfully');
-        navigate('/');
+        Modal.success({
+          title: 'Registration Successful',
+          content: 'Your account has been created successfully.',
+          onOk: () => {
+            if (accountType === 'cargo-mover') {
+              navigate('/root/cargo-mover');
+            } else if (accountType === 'track-owner') {
+              navigate('/root/trucker');
+            } else {
+              navigate('/');
+            }
+          },
+        });
       } catch (error) {
         console.error('Error registering user', error);
-        alert(`Error registering user: ${error.message}`);
+        Modal.error({
+          title: 'Registration Failed',
+          content: error.message,
+        });
       }
     } else {
-      alert('Input error, please try again');
+      Modal.error({
+        title: 'Input Error',
+        content: 'Please check your inputs and try again.',
+      });
     }
   };
 

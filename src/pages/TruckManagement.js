@@ -44,6 +44,10 @@ function TruckManagement() {
   const [truckSpeed, setTruckSpeed] = useState()
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [isAddingTruck, setIsAddingTruck] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const trucksPerPage = 12;
 
   useEffect(() => {
     fetchTrucksFromAPI();
@@ -75,6 +79,7 @@ function TruckManagement() {
       return;
     }
 
+    setIsAddingTruck(true);
     try {
       const imageUrl = await handleImageUpload(truckImage);
       const truckData = {
@@ -104,6 +109,8 @@ function TruckManagement() {
     } catch (error) {
       console.error("Error adding truck:", error.message);
       alert("Error adding truck");
+    } finally {
+      setIsAddingTruck(false);
     }
   };
 
@@ -218,6 +225,22 @@ console.log("selected truck: ", selectedDriver)
     return driver ? driver.name : "Unknown Driver";
   };
 
+  const filteredTrucks = trucks.filter((truck) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      truck.type.toLowerCase().includes(searchLower) ||
+      truck.numberPlate.toLowerCase().includes(searchLower) ||
+      truck.make.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const indexOfLastTruck = currentPage * trucksPerPage;
+  const indexOfFirstTruck = indexOfLastTruck - trucksPerPage;
+  const currentTrucks = filteredTrucks.slice(indexOfFirstTruck, indexOfLastTruck);
+  const totalPages = Math.ceil(filteredTrucks.length / trucksPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
 
   return (
     <div className="truck-management">
@@ -263,7 +286,7 @@ console.log("selected truck: ", selectedDriver)
                       <input type="file" onChange={handleTruckImageChange} />
                     </div>
                   </div>
-                  <button className="add-truck-btn"  type="submit">Add Truck</button>
+                  <button className="add-truck-btn"  type="submit" disabled={isAddingTruck}>{isAddingTruck ? "Adding Truck..." : "Add Truck"}</button>
                 </form>
                 <button onClick={closeMapModal}>Close</button>
               </div>
@@ -272,19 +295,42 @@ console.log("selected truck: ", selectedDriver)
         )}
 
           <div className="tm-map">
+<div className="truck-actions">
+        <input
+            type="text"
+            placeholder="Search for a truck..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+
+        
+             <div className="pagination">
+              <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
+                Previous
+              </button>
+              <span>{currentPage} of {totalPages}</span>
+              <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
+                Next
+              </button>
+            </div>  
+</div>
             <div className="wideMe">
-          {/* <p>All Your Trucks</p> */} 
+      
+
+
+
           <div className="trucks-list">
             {loading ? (
               <p>Loading...</p>
-            ) : trucks.length === 0 ? (
+            ) : currentTrucks.length === 0 ? (
               <div className="no-data-div">
               <p className="no-data-text">Opps, No Trucks Found!</p>
               <img className="no-data-img" src={NoDataSvg} alt="No data" />
 
               </div>
             ) : (
-              trucks.map((truck) => (
+                currentTrucks.map((truck) => (
                 <div key={truck.uid} className="truck-item" onClick={() => openTruckDetailsModal(truck)}>
                   <img className="car-image" src={truck.imageUrl} alt={truck.type} />
                   <div className="car-details">
@@ -302,6 +348,15 @@ console.log("selected truck: ", selectedDriver)
               ))
             )}
           </div>
+          {/* <div className="pagination">
+              <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
+                Previous
+              </button>
+              <span>{currentPage} of {totalPages}</span>
+              <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
+                Next
+              </button>
+            </div> */}
         </div>
         </div>
         </div>

@@ -295,3 +295,14 @@
     align-items: center;
     /* background-color: red; */
   }
+
+  .truck-actions{
+    /* background-color: red; */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .pagination > span{
+    margin: .8rem;
+  }

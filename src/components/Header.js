@@ -78,7 +78,7 @@ function Header() {
      
         <div style={{ color: "#8da5fe", cursor: "pointer" }}className='login_header'>
         
-          <h4 className='font-bold whiteMe'>Request Demo</h4>
+          <h4 className='font-bold whiteMe'>Get Started</h4>
           {/* <i id='ic' className='icon fi fi-rr-arrow-right'></i> */}
         </div>
         </Link>

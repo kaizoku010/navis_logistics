@@ -12,7 +12,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
-import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import { GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 import PlacesAutocomplete from 'react-places-autocomplete'; 
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -76,6 +76,8 @@ const Shipments = () => {
     try {
       const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${API_KEY}`);
       const data = await response.json();
+
+      console.log("response from maps: ", response)
       if (data.results.length > 0) {
         const { lat, lng } = data.results[0].geometry.location;
         return { lat, lng };
@@ -130,7 +132,7 @@ const Shipments = () => {
 
   }, [trucks]);
 
-  console.log("trucks found: ", trucks)
+  // console.log("trucks found: ", trucks)
 
   const handleLoadDirections = (delivery) => {
     const { pickupCoords, destinationCoords } = delivery;
