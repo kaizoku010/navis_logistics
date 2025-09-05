@@ -27,4 +27,12 @@
 .list_sect{
     /* background-color: red; */
     width: 40%;
+    padding: 12px;
 }
+
+.map_sect{
+    width: 60%;
+    height: 100%;
+}
+
+

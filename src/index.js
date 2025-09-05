@@ -28,6 +28,7 @@ import Deliveries from './pages/Deliveries.js';
 import { AIProvider } from './contexts/AIContext';
 import Multi from './pages/Multi.js';
 import AcceptedDeliveries from './pages/AcceptedDeliveries.js';
+import { LoadScript } from '@react-google-maps/api';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -176,16 +177,21 @@ const router = createBrowserRouter([
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+const API_KEY = process.env.REACT_APP_MAPS_API_KEY;
+
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <DatabaseProvider>
-        <AIProvider>
+    <LoadScript googleMapsApiKey={API_KEY} libraries={["places"]}>
+      <AuthProvider>
+        <DatabaseProvider>
           <RouterProvider router={router} />
-        </AIProvider>
-      </DatabaseProvider>
-    </AuthProvider>
-  </React.StrictMode>,
+        </DatabaseProvider>
+      </AuthProvider>
+    </LoadScript>
+  </React.StrictMode>
 );
 
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

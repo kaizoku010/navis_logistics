@@ -12,7 +12,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
-import { GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import { useJsApiLoader, GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 import PlacesAutocomplete from 'react-places-autocomplete'; 
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,9 +36,17 @@ const containerStyle = {
   height: '100%',
 };
 
-const API_KEY = process.env.REACT_APP_FIREBASE_API_KEY;
+const API_KEY = process.env.REACT_APP_MAPS_API_KEY
+
+const libraries = ["places"];
 
 const Shipments = () => {
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: API_KEY,
+    libraries,
+  });
+
   const { 
     user,
    } = useAuth(); // Access user and API client
@@ -299,10 +307,10 @@ const Shipments = () => {
           </List>
         </div>
         <div className="map_sect">
-          <LoadScript googleMapsApiKey={API_KEY}>
+          {isLoaded ? (
             <GoogleMap
               mapContainerStyle={containerStyle}
-              center={markers.pickup || { lat: 0, lng: 0 }}
+              center={markers.pickup || { lat: 0.3476, lng: 32.5825 }}
               zoom={13}
               onLoad={(map) => (mapRef.current = map)}
             >
@@ -313,7 +321,7 @@ const Shipments = () => {
                   options={{
                     origin: directions.origin,
                     destination: directions.destination,
-                    travelMode: directions.travelMode,
+                    travelMode: 'DRIVING',
                   }}
                   callback={directionsCallback}
                 />
@@ -324,7 +332,9 @@ const Shipments = () => {
                 />
               )}
             </GoogleMap>
-          </LoadScript>
+          ) : (
+            <div>Loading...</div>
+          )}
         </div>
       </div>
     </Box>
