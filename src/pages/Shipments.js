@@ -76,9 +76,19 @@ const Shipments = () => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const handleChange = (name) => (value) => {
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
     setForm((prevForm) => ({ ...prevForm, [name]: value }));
   };
+
+
+  const handlePickupChange = useCallback((value) => {
+    setForm((prevForm) => ({ ...prevForm, pickupPoint: value }));
+  }, []);
+
+  const handleDestinationChange = useCallback((value) => {
+    setForm((prevForm) => ({ ...prevForm, destination: value }));
+  }, []);
 
   const getCoordinates = async (address) => {
     try {
@@ -176,7 +186,7 @@ const Shipments = () => {
                   label="Name"
                   name="name"
                   value={form.name}
-                  onChange={(e) => handleChange('name')(e.target.value)}
+                  onChange={handleFormChange}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -185,7 +195,7 @@ const Shipments = () => {
                   label="State"
                   name="state"
                   value={form.state}
-                  onChange={(e) => handleChange('state')(e.target.value)}
+                  onChange={handleFormChange}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -194,7 +204,7 @@ const Shipments = () => {
                   label="Weight"
                   name="weight"
                   value={form.weight}
-                  onChange={(e) => handleChange('weight')(e.target.value)}
+                  onChange={handleFormChange}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -203,14 +213,14 @@ const Shipments = () => {
                   label="Contact"
                   name="contact"
                   value={form.contact}
-                  onChange={(e) => handleChange('contact')(e.target.value)}
+                  onChange={handleFormChange}
                 />
               </Grid>
               <Grid item xs={12}>
                 <PlacesAutocomplete
                   value={form.pickupPoint}
-                  onChange={handleChange('pickupPoint')}
-                  onSelect={(address) => handleChange('pickupPoint')(address)}
+                  onChange={handlePickupChange}
+                  onSelect={handlePickupChange}
                 >
                   {({ getInputProps, suggestions, getSuggestionItemProps }) => (
                     <>
@@ -243,8 +253,8 @@ const Shipments = () => {
               <Grid item xs={12}>
                 <PlacesAutocomplete
                   value={form.destination}
-                  onChange={handleChange('destination')}
-                  onSelect={(address) => handleChange('destination')(address)}
+                  onChange={handleDestinationChange}
+                  onSelect={handleDestinationChange}
                 >
                   {({ getInputProps, suggestions, getSuggestionItemProps }) => (
                     <>
