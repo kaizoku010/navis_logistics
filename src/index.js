@@ -31,6 +31,8 @@ import Multi from './pages/Multi.js';
 import AcceptedDeliveries from './pages/AcceptedDeliveries.js';
 import LoginDriver from './pages/LoginDriver';
 import { LoadScript } from '@react-google-maps/api';
+import { DriverAuthProvider } from './contexts/DriverAuthContext';
+import { FirebaseProvider } from './contexts/firebaseContext';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -189,11 +191,15 @@ const API_KEY = process.env.REACT_APP_MAPS_API_KEY;
 root.render(
   <React.StrictMode>
     <LoadScript googleMapsApiKey={API_KEY} libraries={["places"]}>
-      <AuthProvider>
-        <DatabaseProvider>
-          <RouterProvider router={router} />
-        </DatabaseProvider>
-      </AuthProvider>
+      <FirebaseProvider>
+        <AuthProvider>
+          <DatabaseProvider>
+            <DriverAuthProvider>
+              <RouterProvider router={router} />
+            </DriverAuthProvider>
+          </DatabaseProvider>
+        </AuthProvider>
+      </FirebaseProvider>
     </LoadScript>
   </React.StrictMode>
 );
@@ -202,3 +208,17 @@ root.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+// Remove this entire duplicate render block
+// ReactDOM.render(
+//   <React.StrictMode>
+//     <FirebaseProvider>
+//       <AuthProvider>
+//         <DriverAuthProvider>
+//           <App />
+//         </DriverAuthProvider>
+//       </AuthProvider>
+//     </FirebaseProvider>
+//   </React.StrictMode>,
+//   document.getElementById('root')
+// );

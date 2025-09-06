@@ -98,8 +98,9 @@ export const AuthProvider = ({ children }) => {
         setLoading, // Add setLoading to the context value
         register,
         login,
-        driverLogin,
-        logout
+        // Remove driverLogin from exposed values
+        logout,
+        loading
     };
 
     return (
