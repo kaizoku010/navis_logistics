@@ -40,7 +40,9 @@ function CargoMoverDash() {
 
 </div>
 <div className='div-right'>
-  <IconBox/>
+  <IconBox
+  iconClass="fi fi-sr-vote-nay"
+  number={12} title={"Deliveries Declined"}/>
   <IconBox/>
 </div>
 <IconBox/>
