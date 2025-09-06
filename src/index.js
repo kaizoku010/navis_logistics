@@ -31,7 +31,7 @@ import Multi from './pages/Multi.js';
 import AcceptedDeliveries from './pages/AcceptedDeliveries.js';
 import LoginDriver from './pages/LoginDriver';
 import { LoadScript } from '@react-google-maps/api';
-import { DriverAuthProvider } from './contexts/DriverAuthContext';
+import { DriverAuthProvider, useDriverAuth } from './contexts/DriverAuthContext';
 import { FirebaseProvider } from './contexts/firebaseContext';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -40,6 +40,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/" replace />;
   }
   return children;
+};
+
+const DriverProtectedRoute = ({ children }) => {
+  const { driver } = useDriverAuth();
+  return driver?.accountType === 'driver' ? children : <Navigate to="/login" replace />;
 };
 
 const router = createBrowserRouter([
@@ -114,9 +119,9 @@ const router = createBrowserRouter([
       {
         path: "/root/driver", // New route for driver dashboard
         element: (
-          <ProtectedRoute allowedRoles={['driver']}>
+          <DriverProtectedRoute allowedRoles={['driver']}>
             <DriverDashboard />
-          </ProtectedRoute>
+          </DriverProtectedRoute>
         ),
       },
 

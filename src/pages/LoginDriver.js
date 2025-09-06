@@ -1,30 +1,40 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDatabase } from '../contexts/DatabaseContext';
+import { useDriverAuth } from '../contexts/DriverAuthContext'; // Import useDriverAuth
 import './logic.css';
 
 function LoginDriver() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { drivers, loading } = useDatabase();
-  console.log("Available drivers:", drivers);
+  const [loading, setLoading] = useState(false); // Local loading state
+  const { driverLogin } = useDriverAuth(); // Use driverLogin from DriverAuthContext
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => { // Make handleLogin async
     e.preventDefault();
-    console.log("Attempting login with:", email, password);
-    const driver = drivers.find(d => d.email === email && d.password === password);
-    if (driver) {
-      console.log("Login successful for driver:", driver);
-      // For simplicity, storing driver info in local storage.
-      // Consider a more secure method for a real application.
-      localStorage.setItem('driver', JSON.stringify(driver));
-      navigate('/root/driver');
-    } else {
-      console.log("Login failed. No matching driver found.");
-      setError('Invalid email or password');
+    setError(''); // Clear previous errors
+
+    if (!email || !password) {
+      setError('Please enter both email and password.');
+      return;
     }
+
+    setLoading(true); // Set local loading state to true
+    try {
+      const success = await driverLogin(email, password);
+      if (success) {
+        console.log("Login successful!");
+        navigate('/root/driver'); // Navigate to driver dashboard on success
+      } else {
+        console.log("Login failed. Invalid credentials.");
+        setError('Invalid email or password');
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.message || 'An unexpected error occurred.');
+    }
+    setLoading(false); // Set local loading state to false after attempt
   };
 
   return (

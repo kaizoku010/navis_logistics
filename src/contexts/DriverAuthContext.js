@@ -19,20 +19,30 @@ export function DriverAuthProvider({ children }) {
   const driverLogin = async (email, password) => {
     try {
       const driversRef = collection(firestore, 'drivers');
-      const q = query(driversRef, where('email', '==', email), where('password', '==', password));
+      const q = query(driversRef, 
+        where('email', '==', email), 
+        where('password', '==', password)
+      );
       const snapshot = await getDocs(q);
-
+  
       if (!snapshot.empty) {
         const doc = snapshot.docs[0];
-        const driverData = { id: doc.id, ...doc.data() };
+        // Verify driver account is active
+        if(doc.data().status !== 'active' && doc.data().status !== 'available') {
+          throw new Error('Driver account disabled');
+        }
+        const driverData = { 
+          id: doc.id, 
+          accountType: 'driver',
+          ...doc.data() 
+        };
         setDriver(driverData);
         return true;
       }
       return false;
-    } finally {
-      // Clear sensitive data from memory
-      email = '';
-      password = '';
+    } catch (error) {
+      console.error('Driver login error:', error);
+      throw error;
     }
   };
 
