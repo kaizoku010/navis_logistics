@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Formik } from "formik";
 
-import { Input, InputNumber } from "formik-antd";
+import { Input, InputNumber, Select } from "formik-antd";
 import MultiStepFormContext from "./MultiStepFormContext";
 import "./mulitstep.css"
 import {useNavigate} from "react-router-dom"
@@ -28,9 +28,6 @@ const Details = () => {
         if (!values.name) errors.name = "Required";
         if (!values.contact) errors.contact = "Required";
         if(!values.email) errors.email ="Required"
-        if (/^[0-9]+$/.test(values.state))
-          errors.state =
-            "";
         return errors;
       }}
     >
@@ -59,7 +56,10 @@ const Details = () => {
               className={`form__item ${errors.profession && "input__error"}`}
             >
               <label>State (state can either be liquid or solid) *</label>
-              <Input className="tll-input" name={"state"} />
+              <Select className="tll-input" name={"state"}>
+                <Select.Option value="solid">Solid</Select.Option>
+                <Select.Option value="liquid">Liquid</Select.Option>
+              </Select>
               <p className={"error__feedback"}>{errors.profession}</p>
             </div>
             <div
