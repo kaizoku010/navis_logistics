@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDatabase } from '../contexts/DatabaseContext';
-import { useAuth } from '../contexts/AuthContext'; // Assuming AuthContext will be created
+import { useAuth } from '../contexts/AuthContext';
 import { useTable } from 'react-table';
 import './drivers.css';
 import Search from '../components/Search';
-import { v4 as uuidv4 } from 'uuid';
+
+
 import Button from '@mui/joy/Button';
 import LinearProgress from '@mui/material/LinearProgress';
-import { storage, ref, uploadBytes, getDownloadURL } from "../contexts/firebaseContext"; // Adjust the import path accordingly
+import { storage, ref, uploadBytes, getDownloadURL, firestore } from "../contexts/firebaseContext";
+import { doc, setDoc } from "firebase/firestore";
 
 function Drivers() {
-  const { fetchDriversFromAPI, saveDriverDataToAPI, loading, drivers, trucks, assignments } = useDatabase();
-  const { user } = useAuth(); // Assuming AuthContext will be created
+  const { fetchDriversFromAPI, saveDriverDataToAPI, deleteDriver, updateDriver, loading, drivers, trucks, assignments } = useDatabase();
+  const [driverEmail, setDriverEmail] = useState('');
+  const [driverPassword, setDriverPassword] = useState('');
+  const { user } = useAuth();
+  const [isAddingDriver, setIsAddingDriver] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [driverName, setDriverName] = useState('');
   const [driverImage, setDriverImage] = useState(null);
@@ -37,27 +44,21 @@ function Drivers() {
   };
 
   const handleImageUpload = async (file) => {
-
     const sanitizedFileName = file.name.replace(/\s+/g, '_');
-  
-    // Create a reference with the sanitized file name
     const storageRef = ref(storage, `navis_driver_images/${sanitizedFileName}`);
-
-    // Upload the file
     await uploadBytes(storageRef, file);
-  
-    // Get the download URL
     const imageUrl = await getDownloadURL(storageRef);
-  
     return imageUrl;
   };
 
   const handleAddDriver = async (e) => {
     e.preventDefault();
-    if (!driverName || !driverImage || !phoneNumber || !age || !permitId || !ninNumber) {
-      alert('Please provide all driver details');
+    if (!driverName || !driverEmail || !driverPassword || !phoneNumber || !age || !permitId || !ninNumber) {
+      alert('Please provide all driver details, including email and password.');
       return;
     }
+
+    setIsAddingDriver(true);
 
     try {
       const onUploadProgress = (event) => {
@@ -65,31 +66,54 @@ function Drivers() {
         setProgress(percentCompleted);
       };
 
-      const imageUrl = await handleImageUpload(driverImage, onUploadProgress);
+      const imageUrl = driverImage ? await handleImageUpload(driverImage, onUploadProgress) : "";
+
       const driverData = {
-        uid: uuidv4(),
         name: driverName,
+        email: driverEmail,
+        password: driverPassword, // Storing password directly
         imageUrl: imageUrl,
         company: user.company,
         phoneNumber: phoneNumber,
         age: age,
         permitId: permitId,
         ninNumber: ninNumber,
-        password:uuidv4().slice(0,)
+        currentLatitude: null,
+        currentLongitude: null,
+        status: 'available',
+        currentTruckId: null,
+        currentDeliveryId: null,
       };
-      await saveDriverDataToAPI(driverData);
+
+      const result = await saveDriverDataToAPI(driverData);
+
+      // Optional: You might still want a 'users' collection for role management
+      // but without firebase auth uid. Using the generated uid instead.
+      await setDoc(doc(firestore, "users", result.id), {
+        username: driverName,
+        email: driverEmail,
+        company: user.company,
+        accountType: 'driver',
+        imageUrl: imageUrl,
+      });
+
+      alert('Driver added successfully!');
       fetchDriversFromAPI();
       setDriverName('');
+      setDriverEmail('');
+      setDriverPassword('');
       setDriverImage(null);
       setPhoneNumber('');
       setAge('');
       setPermitId('');
       setNinNumber('');
       setIsModalOpen(false);
-      setProgress(0); // Reset progress bar after successful upload
     } catch (error) {
-      console.error('Error adding driver:', error.message);
-      alert('Error adding driver');
+      console.error('Error adding driver:', error);
+      alert(`Error adding driver: ${error.message}`);
+    } finally {
+      setIsAddingDriver(false);
+      setProgress(0);
     }
   };
 
@@ -98,11 +122,60 @@ function Drivers() {
     setIsDetailModalOpen(true);
   };
 
+  const handleDeleteConfirmation = (driverId) => {
+    setSelectedDriver(driverId);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleDeleteDriver = async () => {
+    try {
+      await deleteDriver(selectedDriver);
+      fetchDriversFromAPI();
+      setIsConfirmModalOpen(false);
+    } catch (error) {
+      console.error('Error deleting driver:', error);
+      alert('Failed to delete driver.');
+    }
+  };
+
+  const handleUpdateDriver = async (e) => {
+    e.preventDefault();
+    if (!selectedDriver) return;
+
+    const updatedDriverData = {
+        ...selectedDriver,
+        name: driverName || selectedDriver.name,
+        email: driverEmail || selectedDriver.email,
+        phoneNumber: phoneNumber || selectedDriver.phoneNumber,
+        age: age || selectedDriver.age,
+        permitId: permitId || selectedDriver.permitId,
+        ninNumber: ninNumber || selectedDriver.ninNumber,
+        password: driverPassword || selectedDriver.password,
+    };
+
+    try {
+        await updateDriver(selectedDriver.id, updatedDriverData);
+        fetchDriversFromAPI();
+        setIsEditModalOpen(false);
+        // Clear fields
+        setDriverName('');
+        setDriverEmail('');
+        setDriverPassword('');
+        setPhoneNumber('');
+        setAge('');
+        setPermitId('');
+        setNinNumber('');
+    } catch (error) {
+        console.error('Error updating driver:', error);
+        alert('Failed to update driver.');
+    }
+  };
+
 
  const assignmentMap = useMemo(() => {
     const map = new Map();
     assignments.forEach(a => {
-      const truck = trucks.find(t => t.uid === a.truckId);
+      const truck = trucks.find(t => t.id === a.truckId);
       if (truck) {
         map.set(a.driverId, `${truck.type} (${truck.numberPlate})`);
       }
@@ -147,14 +220,31 @@ function Drivers() {
     },
     {
       Header: 'Assigned Truck',
-      accessor: 'uid',
+      accessor: 'id',
       Cell: ({ cell }) => (
-        <span>{getAssignedTruck(cell.row.original.uid)}</span>
+        <span>{getAssignedTruck(cell.row.original.id)}</span>
       )
     },
     {
       Header: 'Password',
       accessor: 'password',
+    },
+    {
+        Header: 'Actions',
+        accessor: 'actions',
+        Cell: ({ cell }) => (
+            <div>
+                <button onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedDriver(cell.row.original);
+                    setIsEditModalOpen(true);
+                }}>Edit</button>
+                <button onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteConfirmation(cell.row.original.id)
+                }}>Delete</button>
+            </div>
+        )
     }
   ], []);
 
@@ -206,6 +296,7 @@ function Drivers() {
             <h2>Add Driver</h2>
             {loading && <LinearProgress size="md"  variant="soft" value={progress} />}
             <form onSubmit={handleAddDriver}>
+              <label>Driver Name</label>
               <input
                 type="text"
                 className='wideInput'
@@ -213,10 +304,28 @@ function Drivers() {
                 value={driverName}
                 onChange={(e) => setDriverName(e.target.value)}
               />
+              <label>Driver Email</label>
+              <input
+                type="email"
+                className='wideInput'
+                placeholder="Driver Email"
+                value={driverEmail}
+                onChange={(e) => setDriverEmail(e.target.value)}
+              />
+              <label>Driver Password</label>
+              <input
+                type="password"
+                className='wideInput'
+                placeholder="Driver Password"
+                value={driverPassword}
+                onChange={(e) => setDriverPassword(e.target.value)}
+              />
+              <label>Driver Image</label>
               <input
                 type="file"
                 onChange={handleDriverImageChange}
               />
+              <label>Phone Number</label>
               <input
                 type="text"
                 className='wideInput'
@@ -224,6 +333,7 @@ function Drivers() {
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
               />
+              <label>Age</label>
               <input
                 type="number"
                 placeholder="Age"
@@ -231,6 +341,7 @@ function Drivers() {
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
               />
+              <label>Permit ID</label>
               <input
                 type="text"
                 placeholder="Permit ID"
@@ -238,6 +349,7 @@ function Drivers() {
                 value={permitId}
                 onChange={(e) => setPermitId(e.target.value)}
               />
+              <label>NIN Number</label>
               <input
                 type="text"
                 placeholder="NIN Number"
@@ -272,6 +384,84 @@ function Drivers() {
               <button className='close-btn btn-mdx' onClick={() => setIsDetailModalOpen(false)}>Close</button>
               <button className='assign-btn btn-mdx' onClick={() => setIsDetailModalOpen(false)}>Assign Driver</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isConfirmModalOpen && (
+        <div className='modal'>
+          <div className='modal-content2'>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this driver?</p>
+            <button onClick={handleDeleteDriver}>Yes, Delete</button>
+            <button onClick={() => setIsConfirmModalOpen(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {isEditModalOpen && selectedDriver && (
+        <div style={{width:"fit-content"}} className='modal'>
+          <div className='modal-content2'>
+            <h2>Edit Driver</h2>
+            <form onSubmit={handleUpdateDriver}>
+              <label>Driver Name</label>
+              <input
+                type="text"
+                className='wideInput'
+                placeholder="Driver Name"
+                defaultValue={selectedDriver.name}
+                onChange={(e) => setDriverName(e.target.value)}
+              />
+              <label>Driver Email</label>
+              <input
+                type="email"
+                className='wideInput'
+                placeholder="Driver Email"
+                defaultValue={selectedDriver.email}
+                onChange={(e) => setDriverEmail(e.target.value)}
+              />
+              <label>Driver Password</label>
+              <input
+                type="password"
+                className='wideInput'
+                placeholder="Driver Password"
+                onChange={(e) => setDriverPassword(e.target.value)}
+              />
+              <label>Phone Number</label>
+              <input
+                type="text"
+                className='wideInput'
+                placeholder="Phone Number"
+                defaultValue={selectedDriver.phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+              <label>Age</label>
+              <input
+                type="number"
+                placeholder="Age"
+                className='wideInput'
+                defaultValue={selectedDriver.age}
+                onChange={(e) => setAge(e.target.value)}
+              />
+              <label>Permit ID</label>
+              <input
+                type="text"
+                placeholder="Permit ID"
+                className='wideInput'
+                defaultValue={selectedDriver.permitId}
+                onChange={(e) => setPermitId(e.target.value)}
+              />
+              <label>NIN Number</label>
+              <input
+                type="text"
+                placeholder="NIN Number"
+                className='wideInput'
+                defaultValue={selectedDriver.ninNumber}
+                onChange={(e) => setNinNumber(e.target.value)}
+              />
+              <button className='btn-mdx' type="submit">Update Driver</button>
+              <button className='btn-mdx' type="button" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+            </form>
           </div>
         </div>
       )}

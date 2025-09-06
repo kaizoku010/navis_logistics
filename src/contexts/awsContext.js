@@ -20,7 +20,7 @@ export const AWSProvider = ({ children }) => {
   const [user, setUser] = useState(null); // User state
   const [trucks, setTrucks] = useState([]);
   const [allTrucks, setAllTrucks] = useState([]);
-  const [requests, /*setRequest*/] = useState(); // setRequest is unused
+  const [requests, setRequest] = useState(); // setRequest is unused
   const [drivers, setDrivers] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [deliveries, setDeliveries] = useState([]);

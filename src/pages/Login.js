@@ -34,6 +34,10 @@ function Login() {
         case 'driver': // New case for driver
           navigate("/root/driver"); // Redirect to driver dashboard
           break;
+        default:
+          setError("Invalid account type");
+      }
+    };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -106,6 +110,9 @@ function Login() {
         <p className='termsConditions'>
           By signing in or signing up to Navis.com using social accounts or login/register form,
           you are agreeing to our Terms & Conditions and Privacy Policy
+        </p>
+        <p className='driver-login-link'>
+          Are you a driver? <a href="/login-driver">Login here</a>
         </p>
       </form>
     </div>

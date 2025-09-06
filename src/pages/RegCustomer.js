@@ -122,7 +122,6 @@ function RegCustomer() {
             <option value="">Choose Account Type</option>
             <option value="cargo-mover">Cargo Mover</option>
             <option value="track-owner">Track Owner</option>
-            <option value="driver">Driver</option>
           </select>
           <input
             type="file"

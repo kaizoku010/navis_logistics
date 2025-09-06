@@ -17,34 +17,51 @@ export const DatabaseProvider = ({ children }) => {
     const [nonUserDeliveries, setNonUserDeliveries] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const fetchDriversFromAPI = async () => {
+    const fetchDriversFromAPI = () => {
         setLoading(true);
-        const result = await firebaseClient.getFromFirestore('drivers');
-        if (Array.isArray(result)) {
-            setDrivers(result);
-        }
-        setLoading(false);
+        const unsubscribe = firebaseClient.listenToCollection('drivers', (data) => {
+            setDrivers(data);
+            setLoading(false);
+        });
+        return unsubscribe; // Return unsubscribe function
     };
 
     const saveDriverDataToAPI = async (driverData) => {
         setLoading(true);
-        const result = await firebaseClient.saveToFirestore('drivers', driverData);
+        // Add default values for new fields if not provided
+        const dataToSave = {
+            ...driverData,
+            currentLatitude: driverData.currentLatitude || null,
+            currentLongitude: driverData.currentLongitude || null,
+            role:"driver",
+            status: driverData.status || 'available', // Default status
+            currentTruckId: driverData.currentTruckId || null,
+            companyId: driverData.companyId || null, // Ensure companyId is explicitly handled
+        };
+        const result = await firebaseClient.saveToFirestore('drivers', dataToSave);
         setLoading(false);
         return result;
     };
 
-    const fetchTrucksFromAPI = async () => {
+    const fetchTrucksFromAPI = () => {
         setLoading(true);
-        const result = await firebaseClient.getFromFirestore('trucks');
-        if (Array.isArray(result)) {
-            setTrucks(result);
-        }
-        setLoading(false);
+        const unsubscribe = firebaseClient.listenToCollection('trucks', (data) => {
+            setTrucks(data);
+            setLoading(false);
+        });
+        return unsubscribe; // Return unsubscribe function
     };
 
     const saveTruckDataToAPI = async (truckData) => {
         setLoading(true);
-        const result = await firebaseClient.saveToFirestore('trucks', truckData);
+        // Add default values for new fields if not provided
+        const dataToSave = {
+            ...truckData,
+            status: truckData.status || 'available', // Default status
+            currentDriverId: truckData.currentDriverId || null,
+            currentDeliveryId: truckData.currentDeliveryId || null,
+        };
+        const result = await firebaseClient.saveToFirestore('trucks', dataToSave);
         setLoading(false);
         return result;
     };
@@ -112,7 +129,49 @@ export const DatabaseProvider = ({ children }) => {
         setLoading(false);
         return result;
     };
+
+    const updateDriverLocationInAPI = async (driverId, latitude, longitude, status) => {
+        setLoading(true);
+        const result = await firebaseClient.updateInFirestore('drivers', driverId, {
+            currentLatitude: latitude,
+            currentLongitude: longitude,
+            status: status || 'on_duty' // Default to 'on_duty' if status not provided
+        });
+        setLoading(false);
+        return result;
+    };
+
+    const updateDeliveryStatusForDeliveryCollectionInAPI = async (deliveryId, status) => {
+        setLoading(true);
+        const result = await firebaseClient.updateInFirestore('deliveries', deliveryId, { status });
+        setLoading(false);
+        return result;
+    };
+
+    const deleteDriver = async (driverId) => {
+        setLoading(true);
+        const result = await firebaseClient.deleteFromFirestore('drivers', driverId);
+        setLoading(false);
+        return result;
+    };
+
+    const updateDriver = async (driverId, driverData) => {
+        setLoading(true);
+        const result = await firebaseClient.updateInFirestore('drivers', driverId, driverData);
+        setLoading(false);
+        return result;
+    };
     
+    useEffect(() => {
+        const unsubscribeDrivers = fetchDriversFromAPI();
+        const unsubscribeTrucks = fetchTrucksFromAPI();
+
+        return () => {
+            unsubscribeDrivers();
+            unsubscribeTrucks();
+        };
+    }, []); // Empty dependency array to run once on mount and cleanup on unmount
+
     const value = {
         drivers,
         trucks,
@@ -132,7 +191,11 @@ export const DatabaseProvider = ({ children }) => {
         saveDeliveryToAPI,
         fetchNonUserDeliveriesFromAPI,
         saveNonUserRequestToAPI,
-        updateDeliveryStatusInAPI
+        updateDriverLocationInAPI, // Added
+        updateDeliveryStatusInAPI,
+        updateDeliveryStatusForDeliveryCollectionInAPI, // Corrected
+        deleteDriver,
+        updateDriver
     };
 
     return (

@@ -22,12 +22,14 @@ import { DatabaseProvider } from './contexts/DatabaseContext.js';
 import TruckManagement from './pages/TruckManagement';
 import CargoMoverDash from "./pages/CargoMoverDash"
 import TruckerDash from "./pages/TruckOwnerDash"
+import DriverDashboard from "./pages/DriverDashboard" // New import
 import Homepage from  "./pages/HomePage.js"
 import Contact from "./pages/Contact"
 import Deliveries from './pages/Deliveries.js';
 import { AIProvider } from './contexts/AIContext';
 import Multi from './pages/Multi.js';
 import AcceptedDeliveries from './pages/AcceptedDeliveries.js';
+import LoginDriver from './pages/LoginDriver';
 import { LoadScript } from '@react-google-maps/api';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -48,6 +50,12 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+    errorElement: <ErrorPage />,
+  },
+
+  {
+    path: "/login-driver",
+    element: <LoginDriver />,
     errorElement: <ErrorPage />,
   },
 
@@ -102,13 +110,12 @@ const router = createBrowserRouter([
       },
 
       {
-        path: "/root/requests",
+        path: "/root/driver", // New route for driver dashboard
         element: (
-          <ProtectedRoute allowedRoles={['track-owner']}>
-            <Deliveries />
+          <ProtectedRoute allowedRoles={['driver']}>
+            <DriverDashboard />
           </ProtectedRoute>
         ),
-
       },
 
 

@@ -7,16 +7,19 @@ import {
     ref,
     uploadBytes,
     getDownloadURL,
-    firestore,
+    firestore, // firestore instance from firebaseContext
+} from '../contexts/firebaseContext';
+
+import {
     collection,
     addDoc,
-    
-    getDocs,
+    getDocs, // getDocs was missing from the original import list
     doc,
     getDoc,
     updateDoc,
-    deleteDoc
-} from '../contexts/firebaseContext';
+    deleteDoc,
+    onSnapshot
+} from 'firebase/firestore'; // Correct import path for Firestore functions
 
 // Firebase Client Functions (replacing Firebase Admin functionality)
 export const firebaseClient = {
@@ -93,6 +96,17 @@ export const firebaseClient = {
       console.error(`Error deleting Firestore document ${documentId} from ${collectionName}:`, error.message);
       return { success: false, error: error.message };
     }
+  },
+
+  listenToCollection: (collectionName, callback) => {
+    const q = collection(firestore, collectionName);
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(data);
+    }, (error) => {
+      console.error(`Error listening to collection ${collectionName}:`, error.message);
+    });
+    return unsubscribe;
   }
 };
 

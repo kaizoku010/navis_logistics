@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GoogleMap, DirectionsService, DirectionsRenderer, Marker } from '@react-google-maps/api';
+import { Tooltip } from '@mui/material'; // Import Tooltip
+import { useDatabase } from '../contexts/DatabaseContext'; // Import useDatabase
 import './maps.css';
 
 function NewMap({ allRoutes, selectedRoute }) {
+  const { trucks } = useDatabase(); // Fetch trucks data
   const [directionsResponses, setDirectionsResponses] = useState({}); // Store responses for multiple routes
   const mapRef = useRef(null);
 
@@ -102,8 +105,31 @@ function NewMap({ allRoutes, selectedRoute }) {
             }}
           />
         ))}
+      {/* Render Truck Markers */}
+        {allRoutes.map(route => {
+          const assignedTruck = trucks.find(t => t.uid === route.truckId);
+          // Only render marker if truck is assigned and has location data
+          if (assignedTruck && assignedTruck.currentLatitude && assignedTruck.currentLongitude) {
+            return (
+              <Marker
+                key={`truck-${assignedTruck.uid}`}
+                position={{ lat: assignedTruck.currentLatitude, lng: assignedTruck.currentLongitude }}
+                icon={{
+                  url: "https://maps.google.com/mapfiles/ms/icons/truck.png", // Generic truck icon
+                  scaledSize: new window.google.maps.Size(32, 32),
+                }}
+              >
+                <Tooltip title={`${assignedTruck.numberPlate} - Status: ${assignedTruck.status || 'N/A'}`} arrow>
+                  <div /> {/* Tooltip needs a child element */}
+                </Tooltip>
+              </Marker>
+            );
+          }
+          return null;
+        })}
       </GoogleMap>
     </div>
   );
+}
 
 export default NewMap;

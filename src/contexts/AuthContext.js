@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, firestore } from './firebaseContext';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -44,20 +44,49 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const driverLogin = async (email, password) => {
+        setLoading(true);
+        try {
+            const driversRef = collection(firestore, "drivers");
+            const q = query(driversRef, where("email", "==", email), where("password", "==", password));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const driverDoc = querySnapshot.docs[0];
+                const driverData = { id: driverDoc.id, ...driverDoc.data() };
+                // Ensure accountType is set for ProtectedRoute
+                setUser({ ...driverData, accountType: driverData.role || 'driver' }); 
+                return driverData;
+            } else {
+                throw new Error("Invalid driver credentials");
+            }
+        } catch (error) {
+            console.error("Error during driver login:", error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const logout = () => {
-        console.log("Logging out...");
+        console.log("AuthContext: Logging out...");
         return signOut(auth);
     };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            console.log("AuthContext: onAuthStateChanged triggered. User:", user);
             if (user) {
                 const userDoc = await getDoc(doc(firestore, "users", user.uid));
+                console.log("AuthContext: User document data from Firestore:", userDoc.data());
                 setUser({ ...user, ...userDoc.data() });
+                console.log("AuthContext: User state set to:", { ...user, ...userDoc.data() });
             } else {
+                console.log("AuthContext: No user found. Setting user state to null.");
                 setUser(null);
             }
             setLoading(false);
+            console.log("AuthContext: Loading set to false.");
         });
 
         return unsubscribe;
@@ -69,6 +98,7 @@ export const AuthProvider = ({ children }) => {
         setLoading, // Add setLoading to the context value
         register,
         login,
+        driverLogin,
         logout
     };
 

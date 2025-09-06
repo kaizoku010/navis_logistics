@@ -8,6 +8,9 @@ import { v4 as uuidv4 } from "uuid";
 import Maps from "../components/Maps2";
 import { Select } from "antd";
 import { storage, ref, uploadBytes, getDownloadURL } from "../contexts/firebaseContext"; // Adjust the import path accordingly
+import { auth } from "../contexts/firebaseContext"; // Import auth instance
+import { createUserWithEmailAndPassword } from "firebase/auth"; // Import Firebase Auth function
+import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions for users collection
 
 import NoDataSvg from "../media/no_data.svg";
 
@@ -48,6 +51,18 @@ function TruckManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const trucksPerPage = 12;
+
+  // New state for adding driver
+  const [isAddDriverModalOpen, setIsAddDriverModalOpen] = useState(false);
+  const [newDriverName, setNewDriverName] = useState('');
+  const [newDriverEmail, setNewDriverEmail] = useState('');
+  const [newDriverPassword, setNewDriverPassword] = useState('');
+  const [newDriverPhoneNumber, setNewDriverPhoneNumber] = useState('');
+  const [newDriverAge, setNewDriverAge] = useState('');
+  const [newDriverPermitId, setNewDriverPermitId] = useState('');
+  const [newDriverNinNumber, setNewDriverNinNumber] = useState('');
+  const [newDriverImage, setNewDriverImage] = useState(null);
+  const [isAddingDriver, setIsAddingDriver] = useState(false);
 
   useEffect(() => {
     fetchTrucksFromAPI();
