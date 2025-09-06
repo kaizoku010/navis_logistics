@@ -16,30 +16,37 @@ const API_KEY = process.env.REACT_APP_MAPS_API_KEY; // Your API Key
 
 function Deliveries() {
   const { 
-    nonUserDeliveries, 
-    loading, 
-    fetchNonUserDeliveriesFromAPI, 
-    updateDeliveryStatusInAPI 
+    deliveries, 
+    deliveriesLoading, 
+    fetchDeliveriesFromAPI, 
+    updateDeliveryStatusForDeliveryCollectionInAPI 
   } = useDatabase();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [notification, setNotification] = useState('');
   
   useEffect(() => {
-    fetchNonUserDeliveriesFromAPI();
-  }, [fetchNonUserDeliveriesFromAPI]);
+    if (!authLoading && user?.company) {
+      fetchDeliveriesFromAPI();
+    }
+  }, [fetchDeliveriesFromAPI, authLoading, user?.company]);
 
-  const filteredDeliveries = nonUserDeliveries?.filter(req => req.company === user.company && req?.status === "pending");
+  const filteredDeliveries = React.useMemo(() => {
+    if (!user || !user.company || !deliveries) {
+      return []; // Return empty array if user or deliveries are not ready
+    }
+    return deliveries.filter(req => req.company === user.company && req?.status === "pending");
+  }, [deliveries, user]);
 
   const handleAcceptDelivery = async () => {
     if (selectedDelivery) {
-      await updateDeliveryStatusInAPI(selectedDelivery.uid, "accepted");
+      await updateDeliveryStatusForDeliveryCollectionInAPI(selectedDelivery.uid, "accepted");
       setNotification('Delivery accepted successfully!');
       setTimeout(() => setNotification(''), 3000); // Clear the notification after 3 seconds
       closeModal();
-      await fetchNonUserDeliveriesFromAPI();
+      await fetchDeliveriesFromAPI();
     }
   };
 
@@ -57,8 +64,12 @@ function Deliveries() {
     }
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
+  if (authLoading) {
+    return <div>Loading user data...</div>;
+  }
+
+  if (deliveriesLoading) {
+    return <div>Loading deliveries...</div>;
   }
 
   const handleDeliveryClick = (delivery) => {
@@ -92,7 +103,7 @@ function Deliveries() {
         ) : (
           <ul>
             {filteredDeliveries?.map((delivery) => (
-              <li className='delivery-item' key={delivery.uid} onClick={() => handleDeliveryClick(delivery)}>
+              <li className='delivery-item' key={delivery.id} onClick={() => handleDeliveryClick(delivery)}>
                 <h2>{delivery.name}</h2>
                 <p>Contact: {delivery.contact}</p>
                 <p>Pickup Point: {delivery.pickupPoint}</p>

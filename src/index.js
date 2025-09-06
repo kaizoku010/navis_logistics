@@ -208,10 +208,11 @@ const router = createBrowserRouter([
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 const API_KEY = process.env.REACT_APP_MAPS_API_KEY;
+    const libraries = ["places"];
 
 root.render(
   <React.StrictMode>
-    <LoadScript googleMapsApiKey={API_KEY} libraries={["places"]}>
+    <LoadScript googleMapsApiKey={API_KEY} libraries={libraries}>
       <FirebaseProvider>
         <AuthProvider>
           <DatabaseProvider>

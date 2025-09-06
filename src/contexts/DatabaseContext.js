@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { firebaseClient } from '../api/firebaseAdmin';
 
 const DatabaseContext = createContext();
@@ -16,6 +16,7 @@ export const DatabaseProvider = ({ children }) => {
     const [deliveries, setDeliveries] = useState([]);
     const [nonUserDeliveries, setNonUserDeliveries] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [deliveriesLoading, setDeliveriesLoading] = useState(false);
 
     const fetchDriversFromAPI = () => {
         setLoading(true);
@@ -101,14 +102,21 @@ export const DatabaseProvider = ({ children }) => {
         return result;
     };
 
-    const fetchDeliveriesFromAPI = async () => {
-        setLoading(true);
-        const result = await firebaseClient.getFromFirestore('deliveries');
-        if (Array.isArray(result)) {
-            setDeliveries(result);
+    const fetchDeliveriesFromAPI = useCallback(async () => {
+        setDeliveriesLoading(true);
+        try {
+            const result = await firebaseClient.getFromFirestore('deliveries');
+            if (Array.isArray(result)) {
+                setDeliveries(result);
+            } else {
+                console.error("fetchDeliveriesFromAPI: result is not an array", result);
+            }
+        } catch (error) {
+            console.error("Error fetching deliveries:", error);
+        } finally {
+            setDeliveriesLoading(false);
         }
-        setLoading(false);
-    };
+    }, []);
 
     const saveDeliveryToAPI = async (deliveryData) => {
         setLoading(true);
@@ -119,11 +127,18 @@ export const DatabaseProvider = ({ children }) => {
 
     const fetchNonUserDeliveriesFromAPI = async () => {
         setLoading(true);
-        const result = await firebaseClient.getFromFirestore('non_user_requests');
-        if (Array.isArray(result)) {
-            setNonUserDeliveries(result);
+        try {
+            const result = await firebaseClient.getFromFirestore('non_user_requests');
+            if (Array.isArray(result)) {
+                setNonUserDeliveries(result);
+            } else {
+                console.error("fetchNonUserDeliveriesFromAPI: result is not an array", result);
+            }
+        } catch (error) {
+            console.error("Error fetching non-user deliveries:", error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const saveNonUserRequestToAPI = async (requestData) => {
@@ -197,6 +212,7 @@ export const DatabaseProvider = ({ children }) => {
         deliveries,
         nonUserDeliveries,
         loading,
+        deliveriesLoading,
         fetchDriversFromAPI,
         saveDriverDataToAPI,
         fetchTrucksFromAPI,
