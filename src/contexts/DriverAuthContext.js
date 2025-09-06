@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { firestore } from './firebaseContext';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const DriverAuthContext = createContext();
 
@@ -11,10 +11,34 @@ export function DriverAuthProvider({ children }) {
   });
   
   useEffect(() => {
-    if(driver) {
-      localStorage.setItem('driverSession', JSON.stringify(driver));
-    }
-  }, [driver]);
+    const fetchDriverData = async () => {
+      if (driver && driver.id) {
+        try {
+          const driverDocRef = doc(firestore, 'drivers', driver.id);
+          const driverDocSnap = await getDoc(driverDocRef);
+          if (driverDocSnap.exists()) {
+            const fetchedDriverData = {
+              id: driverDocSnap.id,
+              accountType: 'driver',
+              ...driverDocSnap.data()
+            };
+            setDriver(fetchedDriverData);
+            localStorage.setItem('driverSession', JSON.stringify(fetchedDriverData));
+          } else {
+            console.warn("Driver document not found in Firestore.");
+            localStorage.removeItem('driverSession');
+            setDriver(null);
+          }
+        } catch (error) {
+          console.error("Error fetching driver data from Firestore:", error);
+        }
+      } else if (!driver) {
+        localStorage.removeItem('driverSession');
+      }
+    };
+
+    fetchDriverData();
+  }, [driver?.id]); // Re-run when driver.id changes (e.g., on initial login or logout)
 
   const driverLogin = async (email, password) => {
     try {

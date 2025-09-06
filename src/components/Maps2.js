@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import React, { useState, useCallback, useMemo } from 'react';
+import { GoogleMap, Marker, DirectionsService, DirectionsRenderer, LoadScript } from '@react-google-maps/api';
 import './maps2.css';
 
 const containerStyle = {
@@ -10,6 +10,12 @@ const containerStyle = {
 const Maps2 = ({ pickupCoords, destinationCoords }) => {
   const [directionsResponse, setDirectionsResponse] = useState(null);
 
+  const memoizedDirectionsOptions = useMemo(() => ({
+    origin: pickupCoords,
+    destination: destinationCoords,
+    travelMode: 'DRIVING'
+  }), [pickupCoords, destinationCoords]);
+
   const handleDirectionsCallback = useCallback((response) => {
     if (response && response.status === 'OK') {
       setDirectionsResponse(response);
@@ -19,7 +25,7 @@ const Maps2 = ({ pickupCoords, destinationCoords }) => {
   }, []);
 
   return (
-    // <LoadScript googleMapsApiKey="AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0">
+    <LoadScript googleMapsApiKey={process.env.REACT_APP_MAPS_API_KEY}>
       <GoogleMap
         mapContainerStyle={containerStyle}
         zoom={16}
@@ -29,11 +35,7 @@ const Maps2 = ({ pickupCoords, destinationCoords }) => {
         {destinationCoords && <Marker position={destinationCoords} />}
         {pickupCoords && destinationCoords && (
           <DirectionsService
-            options={{
-              origin: pickupCoords,
-              destination: destinationCoords,
-              travelMode: 'DRIVING'
-            }}
+            options={memoizedDirectionsOptions}
             callback={handleDirectionsCallback}
           />
         )}
@@ -43,7 +45,7 @@ const Maps2 = ({ pickupCoords, destinationCoords }) => {
           />
         )}
       </GoogleMap>
-    // </LoadScript>
+    </LoadScript>
   );
 };
 

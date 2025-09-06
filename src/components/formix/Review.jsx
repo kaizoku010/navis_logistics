@@ -1,5 +1,5 @@
 import { Button, Col, Row, Progress } from "antd";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import MultiStepFormContext from "./MultiStepFormContext";
 import "./mulitstep.css";
@@ -19,9 +19,16 @@ const Review = () => {
   const [requestSaved, setRequestSaved] = useState(false);
   const [fetchError, setFetchError] = useState(false);
 
+  const memoizedMapCoordinates = useMemo(() => ({
+    pickup: coords.pickupCoords,
+    destination: coords.destinationCoords
+  }), [coords.pickupCoords, coords.destinationCoords]);
+
 
 
 console.log('ALL TRUCKS: ', allTrucks)
+console.log('Review - allTrucks:', allTrucks);
+console.log('Review - truckInfo:', truckInfo);
 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');  
 
 useEffect(() => {
@@ -41,7 +48,13 @@ useEffect(() => {
 
         const suitableTruck = trucks_.find(truck => {
           const truckLoad = Number(truck.load);
-          return truckLoad >= minAcceptableWeight && truckLoad <= maxAcceptableWeight;
+          const itemState = details.state.toLowerCase(); // 'solid' or 'liquid'
+          const truckCargoType = truck.cargoType ? truck.cargoType.toLowerCase() : '';
+
+          const weightMatches = truckLoad >= minAcceptableWeight && truckLoad <= maxAcceptableWeight;
+          const cargoTypeMatches = truckCargoType === itemState || truckCargoType === 'both';
+
+          return weightMatches && cargoTypeMatches;
         });
 
         if (suitableTruck) {
@@ -81,21 +94,33 @@ useEffect(() => {
 
   useEffect(() => {
     const fetchCoordinates = async (address) => {
-      const API_KEY = "AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0";
-      const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
-        params: {
-          address,
-          key: API_KEY,
-        },
-      });
-      console.log("response :", response)
-      return response.data.results[0].geometry.location;
+      console.log('Fetching coordinates for address:', address); // Log address being fetched
+      if (!address) return null; // Added validation for empty address
+      const API_KEY = process.env.REACT_APP_MAPS_API_KEY;
+      try {
+        const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+          params: {
+            address,
+            key: API_KEY,
+          },
+        });
+        console.log("response :", response);
+        if (response.data.results?.length > 0) { // Added check for results array
+          return response.data.results[0].geometry.location;
+        }
+        return null; // Return null if no results
+      } catch (err) {
+        console.error('Error fetching coordinates:', err); // Added error handling
+        return null; // Return null on error
+      }
     };
 
     const getCoordinates = async () => {
+      console.log('Getting coordinates for pickup:', address.pickup, 'and destination:', address.destination); // Log addresses
       const pickupCoords = await fetchCoordinates(address.pickup);
       const destinationCoords = await fetchCoordinates(address.destination);
       setCoords({ pickupCoords, destinationCoords });
+      console.log('Coordinates set:', { pickupCoords, destinationCoords }); // Log final coordinates
     };
 
     if (address.pickup && address.destination) {
@@ -228,7 +253,7 @@ useEffect(() => {
           </div>
           <div className="mapOba">
             {coords.pickupCoords && coords.destinationCoords ? (
-              <Maps coordinates={{ pickup: coords.pickupCoords, destination: coords.destinationCoords }} />
+              <Maps coordinates={memoizedMapCoordinates} />
             ) : (
               !loading && <p>Loading map...</p>
             )}

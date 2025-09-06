@@ -31,6 +31,8 @@ function Drivers() {
   const [ninNumber, setNinNumber] = useState('');
   const [progress, setProgress] = useState(0);
 
+  const [selectedTruckId, setSelectedTruckId] = useState(''); // New state for selected truck
+
   useEffect(() => {
     fetchDriversFromAPI();
   }, []);
@@ -188,6 +190,24 @@ function Drivers() {
   };
   
 
+
+  const handleAssignTruck = async () => {
+    if (!selectedDriver || !selectedTruckId) {
+      alert('Please select a driver and a truck to assign.');
+      return;
+    }
+
+    try {
+      await updateDriver(selectedDriver.id, { currentTruckId: selectedTruckId });
+      alert('Truck assigned successfully!');
+      fetchDriversFromAPI(); // Refresh the list
+      setIsDetailModalOpen(false); // Close the modal
+      setSelectedTruckId(''); // Clear selected truck
+    } catch (error) {
+      console.error('Error assigning truck:', error);
+      alert('Failed to assign truck.');
+    }
+  };
 
   const filteredDrivers = drivers.filter(driver =>
     driver.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -381,8 +401,25 @@ function Drivers() {
               <p>Permit ID: {selectedDriver.permitId}</p>
               <p>NIN Number: {selectedDriver.ninNumber}</p>
               <p>Assigned Truck: {selectedDriver.numberPlate}</p>
+              
+              <div className="assign-truck-section">
+                <label htmlFor="truck-select">Assign Truck:</label>
+                <select
+                  id="truck-select"
+                  value={selectedTruckId}
+                  onChange={(e) => setSelectedTruckId(e.target.value)}
+                >
+                  <option value="">-- Select a Truck --</option>
+                  {trucks.map(truck => (
+                    <option key={truck.id} value={truck.id}>
+                      {truck.numberPlate} ({truck.type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <button className='close-btn btn-mdx' onClick={() => setIsDetailModalOpen(false)}>Close</button>
-              <button className='assign-btn btn-mdx' onClick={() => setIsDetailModalOpen(false)}>Assign Driver</button>
+              <button className='assign-btn btn-mdx' onClick={handleAssignTruck}>Assign Driver</button>
             </div>
           </div>
         </div>

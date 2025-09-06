@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useDriverAuth } from '../contexts/DriverAuthContext'; // Use useDriverAuth
 import { useDatabase } from '../contexts/DatabaseContext';
 import NewMap from './NewMap'; // Reusing the NewMap component
 import './driverDashboard.css'; // Assuming a new CSS file for styling
 
 function DriverDashboard() {
-  const { user } = useAuth();
-  
+  const { driver } = useDriverAuth(); // Get driver from useDriverAuth
+  console.log("Driver currentTruckId from useDriverAuth:", driver?.currentTruckId);
 
   const { deliveries, trucks, assignments, fetchDeliveriesFromAPI, fetchTrucksFromAPI, fetchAssignmentsFromAPI, updateDriverLocationInAPI, updateDeliveryStatusForDeliveryCollectionInAPI } = useDatabase(); // Added updateDriverLocationInAPI, updateDeliveryStatusForDeliveryCollectionInAPI
 
@@ -21,26 +21,28 @@ function DriverDashboard() {
     fetchAssignmentsFromAPI();
   }, []);
 
-  // Identify current delivery and truck based on user's data
+  // Identify current delivery and truck based on driver's data
   useEffect(() => {
-    if (user && user.currentDeliveryId && deliveries.length > 0) {
-      const foundDelivery = deliveries.find(d => d.uid === user.currentDeliveryId);
+    console.log("Inside useEffect - Driver object:", driver);
+    console.log("Inside useEffect - Trucks available:", trucks);
+    if (driver && driver.currentDeliveryId && deliveries.length > 0) {
+      const foundDelivery = deliveries.find(d => d.uid === driver.currentDeliveryId);
       setCurrentDelivery(foundDelivery);
     }
-    if (user && user.currentTruckId && trucks.length > 0) {
-      const foundTruck = trucks.find(t => t.uid === user.currentTruckId);
+    if (driver && driver.currentTruckId && trucks.length > 0) {
+      const foundTruck = trucks.find(t => t.id === driver.currentTruckId);
       setCurrentTruck(foundTruck);
     }
-  }, [user, deliveries, trucks]);
+  }, [driver, deliveries, trucks]);
 
   // Real-time location tracking effect
   useEffect(() => {
     let watchId;
-    if (isTrackingLocation && user?.uid) {
+    if (isTrackingLocation && driver?.id) { // Use driver.id for uid
       watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          updateDriverLocationInAPI(user.uid, latitude, longitude, 'in_transit'); // Update driver's location and status
+          updateDriverLocationInAPI(driver.id, latitude, longitude, 'in_transit'); // Update driver's location and status
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -56,11 +58,11 @@ function DriverDashboard() {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [isTrackingLocation, user?.uid, updateDriverLocationInAPI]);
+  }, [isTrackingLocation, driver?.id, updateDriverLocationInAPI]);
 
   // Handlers for Start/Stop Delivery buttons
   const handleStartDelivery = async () => {
-    if (!currentDelivery || !user?.uid) {
+    if (!currentDelivery || !driver?.id) { // Use driver.id
       alert("No current delivery or driver ID available.");
       return;
     }
@@ -70,7 +72,7 @@ function DriverDashboard() {
   };
 
   const handleStopDelivery = async () => {
-    if (!currentDelivery || !user?.uid) {
+    if (!currentDelivery || !driver?.id) { // Use driver.id
       alert("No current delivery or driver ID available.");
       return;
     }
@@ -93,10 +95,11 @@ function DriverDashboard() {
 
       <div className="dashboard-content">
         <div className="map-section">
-          {mapRoutes.length > 0 ? (
-            <NewMap allRoutes={mapRoutes} selectedRoute={mapRoutes[0]} />
-          ) : (
-            <p>No active delivery route to display.</p>
+          <NewMap allRoutes={mapRoutes} selectedRoute={mapRoutes.length > 0 ? mapRoutes[0] : null} />
+          {mapRoutes.length === 0 && (
+            <div className="map-overlay-text">
+              <p>No active delivery route to display.</p>
+            </div>
           )}
         </div>
 
@@ -120,8 +123,21 @@ function DriverDashboard() {
           )}
 
           <h2>Driver Profile</h2>
-          <p><strong>Username:</strong> {user?.username}</p>
-          <p><strong>Company:</strong> {user?.company}</p>
+          {driver?.imageUrl && (
+            <img src={driver.imageUrl} alt="Driver Profile" className="driver-profile-pic" />
+          )}
+          <p><strong>Name:</strong> {driver?.name}</p>
+          <p><strong>Email:</strong> {driver?.email}</p>
+          <p><strong>Phone:</strong> {driver?.phoneNumber}</p>
+          <p><strong>Company:</strong> {driver?.company}</p>
+          <p><strong>Role:</strong> {driver?.role}</p>
+          <p><strong>Status:</strong> {driver?.status}</p>
+          {driver?.age && <p><strong>Age:</strong> {driver.age}</p>}
+          {driver?.ninNumber && <p><strong>NIN:</strong> {driver.ninNumber}</p>}
+          {driver?.permitId && <p><strong>Permit ID:</strong> {driver.permitId}</p>}
+          {currentTruck && (
+            <p><strong>Assigned Truck:</strong> {currentTruck.numberPlate} ({currentTruck.type})</p>
+          )}
           {/* More profile details */}
         </div>
       </div>

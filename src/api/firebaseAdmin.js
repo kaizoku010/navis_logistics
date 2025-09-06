@@ -59,18 +59,24 @@ export const firebaseClient = {
 
   getFromFirestore: async (collectionName, documentId = null) => {
     try {
+      console.log(`getFromFirestore: Attempting to fetch from collection: ${collectionName}`);
       if (documentId) {
         const docSnap = await getDoc(doc(firestore, collectionName, documentId));
         if (!docSnap.exists()) {
+          console.log(`getFromFirestore: Document ${documentId} not found in ${collectionName}`);
           return null;
         }
-        return { id: docSnap.id, ...docSnap.data() };
+        const data = { id: docSnap.id, ...docSnap.data() };
+        console.log(`getFromFirestore: Document ${documentId} data:`, data);
+        return data;
       } else {
         const querySnapshot = await getDocs(collection(firestore, collectionName));
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log(`getFromFirestore: Successfully fetched ${data.length} documents from ${collectionName}:`, data);
+        return data;
       }
     } catch (error) {
-      console.error(`Error fetching from Firestore collection ${collectionName}:`, error.message);
+      console.error(`getFromFirestore: Error fetching from Firestore collection ${collectionName}:`, error.message);
       return { success: false, error: error.message };
     }
   },
@@ -89,11 +95,12 @@ export const firebaseClient = {
 
   deleteFromFirestore: async (collectionName, documentId) => {
     try {
+      console.log(`deleteFromFirestore: Attempting to delete document ${documentId} from collection ${collectionName}`);
       await deleteDoc(doc(firestore, collectionName, documentId));
-      
+      console.log(`deleteFromFirestore: Successfully deleted document ${documentId}`);
       return { success: true };
     } catch (error) {
-      console.error(`Error deleting Firestore document ${documentId} from ${collectionName}:`, error.message);
+      console.error(`deleteFromFirestore: Error deleting Firestore document ${documentId} from ${collectionName}:`, error.message);
       return { success: false, error: error.message };
     }
   },

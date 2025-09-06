@@ -21,6 +21,8 @@ function TruckManagement() {
     fetchDriversFromAPI,
     saveAssignmentToAPI,
     fetchAssignmentsFromAPI,
+    updateDriver, // Added updateDriver
+    deleteTruck, // Added deleteTruck
     trucks,
     drivers,
     assignments,
@@ -45,6 +47,7 @@ function TruckManagement() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [truckSpeed, setTruckSpeed] = useState()
+  const [cargoType, setCargoType] = useState("");
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
   const [isAddingTruck, setIsAddingTruck] = useState(false);
@@ -89,7 +92,7 @@ function TruckManagement() {
 
   const handleAddTruck = async (e) => {
     e.preventDefault();
-    if (!truckType || !truckImage || !numberPlate || !yearOfManufacture || !make || !mileage || !fuelType || !load) {
+    if (!truckType || !truckImage || !numberPlate || !yearOfManufacture || !make || !mileage || !fuelType || !load || !cargoType) {
       alert("Please provide all truck details");
       return;
     }
@@ -108,7 +111,8 @@ function TruckManagement() {
         fuelType: fuelType,
         load: load,
         company: user.company,
-        speed: truckSpeed
+        speed: truckSpeed,
+        cargoType: cargoType
       };
       await saveTruckDataToAPI(truckData);
       fetchTrucksFromAPI();
@@ -149,6 +153,7 @@ function TruckManagement() {
     setFuelType(truck.fuelType || "");
     setLoad(truck.load || "");
     setTruckSpeed(truck.speed || "");
+    setCargoType(truck.cargoType || "");
     setIsEditModalOpen(true);
   };
   
@@ -176,11 +181,11 @@ function TruckManagement() {
         fuelType: fuelType || editTruck.fuelType,
         load: load || editTruck.load,
         speed: truckSpeed || editTruck.speed,
+        cargoType: cargoType || editTruck.cargoType,
         
       };
   
       await saveTruckDataToAPI(updatedTruckData);
-      fetchTrucksFromAPI(); // Refresh truck list
       setTruckType("");
       setTruckImage(null);
       setNumberPlate("");
@@ -218,6 +223,8 @@ console.log("selected truck: ", selectedDriver)
         driverId: selectedDriver,
         truckId: selectedTruck.uid,
       });
+      // Update the driver's currentTruckId
+      await updateDriver(selectedDriver, { currentTruckId: selectedTruck.uid });
       fetchAssignmentsFromAPI(); // Re-fetch assignments
       alert("Truck assigned successfully!");
     } catch (error) {
@@ -231,6 +238,20 @@ console.log("selected truck: ", selectedDriver)
   const openTruckDetailsModal = (truck) => {
     setSelectedTruck(truck);
     setIsDetailModalOpen(true);
+  };
+
+  const handleDeleteTruck = async (truckId) => {
+    console.log("handleDeleteTruck - user:", user);
+    if (window.confirm("Are you sure you want to delete this truck?")) {
+      try {
+        await deleteTruck(truckId);
+        setIsDetailModalOpen(false); // Close modal after deletion
+        alert("Truck deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting truck:", error.message);
+        alert("Error deleting truck");
+      }
+    }
   };
 
   const getAssignedDriver = (truckId) => {
@@ -287,6 +308,13 @@ console.log("selected truck: ", selectedDriver)
   <option value="Container Truck">Container Truck</option>
   <option value="LTL Trucks">LTL Truck</option>
   <option value="Heavy Haulers">Heavy Hauler</option>
+</Select>
+
+<Select className="select-truck" value={cargoType} onChange={(value) => setCargoType(value)}>
+  <option value="" disabled>Select Cargo Type</option>
+  <option value="solid">Solid</option>
+  <option value="liquid">Liquid</option>
+  <option value="both">Both</option>
 </Select>
 
                   <div className="">
@@ -432,6 +460,16 @@ console.log("selected truck: ", selectedDriver)
             value={fuelType}
             onChange={(e) => setFuelType(e.target.value)}
           />
+          <Select
+            className="ed_input"
+            value={cargoType}
+            onChange={(value) => setCargoType(value)}
+          >
+            <option value="" disabled>Select Cargo Type</option>
+            <option value="solid">Solid</option>
+            <option value="liquid">Liquid</option>
+            <option value="both">Both</option>
+          </Select>
           <input type="file" onChange={handleTruckImageChange} />
           <button className="update_truck_btn" type="submit" disabled={loading}>
             {loading ? "Updating Truck..." : "Update Truck"}
@@ -481,6 +519,7 @@ console.log("selected truck: ", selectedDriver)
                   </button>
                 </div>
                 <button className="edit_truck" onClick={() => openEditModal(selectedTruck)}>Edit Truck</button>
+                <button className="delete_truck" onClick={() => handleDeleteTruck(selectedTruck.id)}>Delete Truck</button>
                 <button onClick={() => setIsDetailModalOpen(false)}>Close</button>
 
               </div>

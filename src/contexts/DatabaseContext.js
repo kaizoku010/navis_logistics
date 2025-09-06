@@ -61,18 +61,28 @@ export const DatabaseProvider = ({ children }) => {
             currentDriverId: truckData.currentDriverId || null,
             currentDeliveryId: truckData.currentDeliveryId || null,
         };
-        const result = await firebaseClient.saveToFirestore('trucks', dataToSave);
+        // Determine if it's an update or a new addition
+        const documentId = truckData.uid || null; // Use uid as documentId if it exists
+        const result = await firebaseClient.saveToFirestore('trucks', dataToSave, documentId);
         setLoading(false);
         return result;
     };
 
     const fetchAllTrucksFromAPI = async () => {
         setLoading(true);
-        const result = await firebaseClient.getFromFirestore('trucks');
-        if (Array.isArray(result)) {
-            setAllTrucks(result);
+        try {
+            const result = await firebaseClient.getFromFirestore('trucks');
+            console.log("fetchAllTrucksFromAPI - result from getFromFirestore:", result);
+            if (Array.isArray(result)) {
+                setAllTrucks(result);
+            } else {
+                console.error("fetchAllTrucksFromAPI: result is not an array", result);
+            }
+        } catch (error) {
+            console.error("Error fetching all trucks:", error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const fetchAssignmentsFromAPI = async () => {
@@ -155,6 +165,13 @@ export const DatabaseProvider = ({ children }) => {
         return result;
     };
 
+    const deleteTruck = async (truckId) => {
+        setLoading(true);
+        const result = await firebaseClient.deleteFromFirestore('trucks', truckId);
+        setLoading(false);
+        return result;
+    };
+
     const updateDriver = async (driverId, driverData) => {
         setLoading(true);
         const result = await firebaseClient.updateInFirestore('drivers', driverId, driverData);
@@ -195,6 +212,7 @@ export const DatabaseProvider = ({ children }) => {
         updateDeliveryStatusInAPI,
         updateDeliveryStatusForDeliveryCollectionInAPI, // Corrected
         deleteDriver,
+        deleteTruck,
         updateDriver
     };
 
