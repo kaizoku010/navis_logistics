@@ -73,7 +73,7 @@ To enable real-time truck tracking and status updates, the following fields need
 *   **Google Maps API Loading (`Maps.js`):**
     *   The `Maps.js` component now internally handles loading the Google Maps API using `LoadScript`.
 
-## 6. Next Steps (Development Plan)
+## 6. Next Steps (Development Plan) - Complete
 
 1.  **Implement `driver` Role:**
     *   Create a registration process for drivers (likely by track owners).

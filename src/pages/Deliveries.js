@@ -12,7 +12,7 @@ const containerStyle = {
   height: '60vh'
 };
 
-const API_KEY = 'AIzaSyAy4-wGmH9U6le-7lCL9rm0N2nxxBsNWi0'; // Your API Key
+const API_KEY = process.env.REACT_APP_MAPS_API_KEY; // Your API Key
 
 function Deliveries() {
   const { 

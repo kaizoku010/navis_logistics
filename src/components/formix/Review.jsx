@@ -11,7 +11,8 @@ const Review = () => {
   const { details, address, prev } = useContext(MultiStepFormContext);
   const [truckInfo, setTruckInfo] = useState(null);
   const [coords, setCoords] = useState({ pickupCoords: null, destinationCoords: null });
-  const { allTrucks, fetchAllTrucksFromAPI, saveNonUserRequestToAPI } = useDatabase();
+  const [distance, setDistance] = useState(null);
+  const { allTrucks, fetchAllTrucksFromAPI, saveNonUserRequestToAPI, saveDeliveryToAPI } = useDatabase();
   const [data, setData] = useState();
   const [numberPlate, setNumberPlate] = useState();
   const [company, setCompany] = useState();
@@ -26,9 +27,9 @@ const Review = () => {
 
 
 
-console.log('ALL TRUCKS: ', allTrucks)
-console.log('Review - allTrucks:', allTrucks);
-console.log('Review - truckInfo:', truckInfo);
+// console.log('ALL TRUCKS: ', allTrucks)
+// console.log('Review - allTrucks:', allTrucks);
+// console.log('Review - truckInfo:', truckInfo);
 const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');  
 
 useEffect(() => {
@@ -88,13 +89,13 @@ useEffect(() => {
   }, [address, allTrucks]);
 
   const calculateDeliveryTime = (truck) => {
-    const distance = 100; // Example distance in km
+    if (!distance || !truck.speed) return "N/A";
     return distance / truck.speed; // Calculate time in hours
   };
 
   useEffect(() => {
     const fetchCoordinates = async (address) => {
-      console.log('Fetching coordinates for address:', address); // Log address being fetched
+      // console.log('Fetching coordinates for address:', address); // Log address being fetched
       if (!address) return null; // Added validation for empty address
       const API_KEY = process.env.REACT_APP_MAPS_API_KEY;
       try {
@@ -104,7 +105,7 @@ useEffect(() => {
             key: API_KEY,
           },
         });
-        console.log("response :", response);
+        // console.log("response :", response);
         if (response.data.results?.length > 0) { // Added check for results array
           return response.data.results[0].geometry.location;
         }
@@ -116,11 +117,40 @@ useEffect(() => {
     };
 
     const getCoordinates = async () => {
-      console.log('Getting coordinates for pickup:', address.pickup, 'and destination:', address.destination); // Log addresses
+      // console.log('Getting coordinates for pickup:', address.pickup, 'and destination:', address.destination); // Log addresses
       const pickupCoords = await fetchCoordinates(address.pickup);
       const destinationCoords = await fetchCoordinates(address.destination);
       setCoords({ pickupCoords, destinationCoords });
-      console.log('Coordinates set:', { pickupCoords, destinationCoords }); // Log final coordinates
+      // console.log('Coordinates set:', { pickupCoords, destinationCoords }); // Log final coordinates
+
+      // Fetch distance using Distance Matrix API
+      if (pickupCoords && destinationCoords) {
+        const API_KEY = process.env.REACT_APP_MAPS_API_KEY;
+        try {
+          const response = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json`, {
+            params: {
+              origins: `${pickupCoords.lat},${pickupCoords.lng}`,
+              destinations: `${destinationCoords.lat},${destinationCoords.lng}`,
+              key: API_KEY,
+            },
+          });
+          // console.log("Distance Matrix API response:", response);
+          if (response.data.rows?.length > 0 && response.data.rows[0].elements?.length > 0) {
+            const element = response.data.rows[0].elements[0];
+            if (element.status === 'OK') {
+              setDistance(element.distance.value / 1000); // Distance in kilometers
+            } else {
+              console.error('Distance Matrix API element status:', element.status);
+              setDistance(null);
+            }
+          } else {
+            setDistance(null);
+          }
+        } catch (err) {
+          console.error('Error fetching distance:', err);
+          setDistance(null);
+        }
+      }
     };
 
     if (address.pickup && address.destination) {
@@ -151,7 +181,7 @@ useEffect(() => {
         date:formattedDate
       };
 
-      await saveNonUserRequestToAPI(data);
+      await saveDeliveryToAPI(data);
       setRequestSaved(true);
     } catch {
       // Handle error

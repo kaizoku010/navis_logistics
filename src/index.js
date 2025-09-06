@@ -1,42 +1,48 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
 import {
   createBrowserRouter,
   RouterProvider,
   Navigate,
 } from "react-router-dom";
-import Login from './pages/Login';
-import Root from './routes/root';
-import ErrorPage from './error-page';
-import Dashboard from './pages/Dashboard';
-import Tracks from './pages/Tracks';
-import Drivers from './pages/Drivers';
-import Customers from './pages/Customers';
-import Shipments from './pages/Shipments';
-import RegCustomer from './pages/RegCustomer';
-import AddTruck from './pages/AddTruck';
-import { AuthProvider, useAuth } from './contexts/AuthContext.js';
-import { DatabaseProvider } from './contexts/DatabaseContext.js';
-import TruckManagement from './pages/TruckManagement';
-import CargoMoverDash from "./pages/CargoMoverDash"
-import TruckerDash from "./pages/TruckOwnerDash"
-import DriverDashboard from "./pages/DriverDashboard" // New import
-import Homepage from  "./pages/HomePage.js"
-import Contact from "./pages/Contact"
-import Deliveries from './pages/Deliveries.js';
-import { AIProvider } from './contexts/AIContext';
-import Multi from './pages/Multi.js';
-import AcceptedDeliveries from './pages/AcceptedDeliveries.js';
-import LoginDriver from './pages/LoginDriver';
-import { LoadScript } from '@react-google-maps/api';
-import { DriverAuthProvider, useDriverAuth } from './contexts/DriverAuthContext';
-import { FirebaseProvider } from './contexts/firebaseContext';
+import Login from "./pages/Login";
+import Root from "./routes/root";
+import ErrorPage from "./error-page";
+import Dashboard from "./pages/Dashboard";
+import Tracks from "./pages/Tracks";
+import Drivers from "./pages/Drivers";
+import Customers from "./pages/Customers";
+import Shipments from "./pages/Shipments";
+import RegCustomer from "./pages/RegCustomer";
+import AddTruck from "./pages/AddTruck";
+import { AuthProvider, useAuth } from "./contexts/AuthContext.js";
+import { DatabaseProvider } from "./contexts/DatabaseContext.js";
+import TruckManagement from "./pages/TruckManagement";
+import CargoMoverDash from "./pages/CargoMoverDash";
+import TruckerDash from "./pages/TruckOwnerDash";
+import DriverDashboard from "./pages/DriverDashboard"; // New import
+import Homepage from "./pages/HomePage.js";
+import Contact from "./pages/Contact";
+import Deliveries from "./pages/Deliveries.js";
+import { AIProvider } from "./contexts/AIContext";
+import Multi from "./pages/Multi.js";
+import AcceptedDeliveries from "./pages/AcceptedDeliveries.js";
+import LoginDriver from "./pages/LoginDriver";
+import { LoadScript } from "@react-google-maps/api";
+import {
+  DriverAuthProvider,
+  useDriverAuth,
+} from "./contexts/DriverAuthContext";
+import { FirebaseProvider } from "./contexts/firebaseContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
-  if (!user || (!allowedRoles.includes(user.accountType) && user.accountType !== 'root')) {
+  if (
+    !user ||
+    (!allowedRoles.includes(user.accountType) && user.accountType !== "root")
+  ) {
     return <Navigate to="/" replace />;
   }
   return children;
@@ -44,7 +50,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 const DriverProtectedRoute = ({ children }) => {
   const { driver } = useDriverAuth();
-  return driver?.accountType === 'driver' ? children : <Navigate to="/login" replace />;
+  return driver?.accountType === "driver" ? (
+    children
+  ) : (
+    <Navigate to="/login" replace />
+  );
 };
 
 const router = createBrowserRouter([
@@ -66,14 +76,11 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
 
-
   {
     path: "/start",
-    element: <Multi/>,
+    element: <Multi />,
     errorElement: <ErrorPage />,
   },
-
-
 
   {
     path: "/sales",
@@ -93,15 +100,24 @@ const router = createBrowserRouter([
       {
         path: "/root/dashboard",
         element: (
-          <ProtectedRoute allowedRoles={['root']}>
+          <ProtectedRoute allowedRoles={["root"]}>
             <Dashboard />
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "/root/requests",
+        element: (
+          <ProtectedRoute allowedRoles={["track-owner"]}>
+            <Deliveries />
           </ProtectedRoute>
         ),
       },
       {
         path: "/root/cargo-mover",
         element: (
-          <ProtectedRoute allowedRoles={['cargo-mover']}>
+          <ProtectedRoute allowedRoles={["cargo-mover"]}>
             <CargoMoverDash />
           </ProtectedRoute>
         ),
@@ -109,27 +125,25 @@ const router = createBrowserRouter([
       {
         path: "/root/trucker",
         element: (
-          <ProtectedRoute allowedRoles={['track-owner']}>
+          <ProtectedRoute allowedRoles={["track-owner"]}>
             <TruckerDash />
           </ProtectedRoute>
         ),
-
       },
 
       {
         path: "/root/driver", // New route for driver dashboard
         element: (
-          <DriverProtectedRoute allowedRoles={['driver']}>
+          <DriverProtectedRoute allowedRoles={["driver"]}>
             <DriverDashboard />
           </DriverProtectedRoute>
         ),
       },
 
-
       {
         path: "/root/tracks",
         element: (
-          <ProtectedRoute allowedRoles={['cargo-mover']}>
+          <ProtectedRoute allowedRoles={["cargo-mover"]}>
             <Tracks />
           </ProtectedRoute>
         ),
@@ -137,7 +151,7 @@ const router = createBrowserRouter([
       {
         path: "/root/addTracks",
         element: (
-          <ProtectedRoute allowedRoles={['cargo-mover']}>
+          <ProtectedRoute allowedRoles={["cargo-mover"]}>
             <AddTruck />
           </ProtectedRoute>
         ),
@@ -145,7 +159,7 @@ const router = createBrowserRouter([
       {
         path: "/root/drivers",
         element: (
-          <ProtectedRoute allowedRoles={['track-owner']}>
+          <ProtectedRoute allowedRoles={["track-owner"]}>
             <Drivers />
           </ProtectedRoute>
         ),
@@ -153,7 +167,7 @@ const router = createBrowserRouter([
       {
         path: "/root/truck-management",
         element: (
-          <ProtectedRoute allowedRoles={['track-owner']}>
+          <ProtectedRoute allowedRoles={["track-owner"]}>
             <TruckManagement />
           </ProtectedRoute>
         ),
@@ -169,7 +183,9 @@ const router = createBrowserRouter([
       {
         path: "/root/map",
         element: (
-          <ProtectedRoute allowedRoles={['track-owner', 'cargo-mover', 'driver']}>
+          <ProtectedRoute
+            allowedRoles={["track-owner", "cargo-mover", "driver"]}
+          >
             <AcceptedDeliveries />
           </ProtectedRoute>
         ),
@@ -181,7 +197,7 @@ const router = createBrowserRouter([
       {
         path: "/root/shipments",
         element: (
-          <ProtectedRoute allowedRoles={['cargo-mover']}>
+          <ProtectedRoute allowedRoles={["cargo-mover"]}>
             <Shipments />
           </ProtectedRoute>
         ),
@@ -190,7 +206,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 const API_KEY = process.env.REACT_APP_MAPS_API_KEY;
 
 root.render(
