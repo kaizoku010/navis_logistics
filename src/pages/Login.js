@@ -31,10 +31,9 @@ function Login() {
         case 'track-owner':
           navigate("/root/trucker");
           break;
-        default:
-          setError("Invalid account type");
-      }
-    };
+        case 'driver': // New case for driver
+          navigate("/root/driver"); // Redirect to driver dashboard
+          break;
 
     const handleSubmit = async (e) => {
       e.preventDefault();

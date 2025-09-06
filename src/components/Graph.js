@@ -1,18 +1,18 @@
 import * as React from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 
-export default function Graph() {
+export default function Graph({ xAxisData = [], deliveriesData = [], requestsData = [] }) {
   return (
 <div className='card graphBg'>
       <LineChart
       skipAnimation={false}
-      xAxis={[{ data: [1, 2, 3, 5, 8, 10] }]}
+      xAxis={[{ data: xAxisData }]}
       series={[
         {
             id: 'Deliveries over time',
             color:"#ce4406",
             label: 'Deliveries over time',
-          data: [2, 5.5, 2, 8.5, 1.5, 5],
+          data: deliveriesData.length === 1 ? [0, deliveriesData[0]] : deliveriesData, // Pad with 0 if only one point
           area: true,
 
         },
@@ -20,7 +20,7 @@ export default function Graph() {
           id: 'Requests over time',
           color:"#676afc",
           label: 'Requests over time',
-        data: [2.3, 5, 1, 4.5, 1.3, 7],
+        data: requestsData.length === 1 ? [0, requestsData[0]] : requestsData, // Pad with 0 if only one point
         area: true,
 
       },
