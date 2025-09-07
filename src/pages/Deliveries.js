@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Layout, Row, Col, List, Card, Button, Spin, message } from 'antd';
+import { Layout, Input, Table, Button, Spin, message, Modal as AntdModal, Tag } from 'antd';
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
 import { GoogleMap, Marker, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
-import { Modal as AntdModal } from 'antd'; // Import Ant Design Modal and alias it
 import './deliver.css';
+
+const { Search } = Input;
 
 const containerStyle = {
   width: '100%',
@@ -24,7 +25,9 @@ function Deliveries() {
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  
+  const [searchText, setSearchText] = useState('');
+  const [filteredStatus, setFilteredStatus] = useState(null);
+
   useEffect(() => {
     if (!authLoading && user?.company) {
       fetchDeliveriesFromAPI();
@@ -33,15 +36,30 @@ function Deliveries() {
 
   const filteredDeliveries = React.useMemo(() => {
     if (!user || !user.company || !deliveries) {
-      return []; // Return empty array if user or deliveries are not ready
+      return [];
     }
-    return deliveries.filter(req => req?.status === "pending");
-  }, [deliveries, user]);
+    let data = deliveries.filter(req => req?.status === "pending");
+
+    if (searchText) {
+      data = data.filter(delivery =>
+        delivery.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        delivery.contact.toLowerCase().includes(searchText.toLowerCase()) ||
+        delivery.pickupPoint.toLowerCase().includes(searchText.toLowerCase()) ||
+        delivery.destination.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    if (filteredStatus) {
+        data = data.filter(delivery => delivery.status === filteredStatus);
+    }
+
+    return data;
+  }, [deliveries, user, searchText, filteredStatus]);
 
   const handleAcceptDelivery = async () => {
     if (selectedDelivery) {
       await updateDeliveryStatusForDeliveryCollectionInAPI(selectedDelivery.uid, "accepted");
-      message.success('Delivery accepted successfully!'); // Use Ant Design message
+      message.success('Delivery accepted successfully!');
       closeModal();
       await fetchDeliveriesFromAPI();
     }
@@ -90,43 +108,78 @@ function Deliveries() {
     setDirectionsResponse(null);
   };
 
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Contact',
+      dataIndex: 'contact',
+      key: 'contact',
+    },
+    {
+      title: 'Pickup Point',
+      dataIndex: 'pickupPoint',
+      key: 'pickupPoint',
+    },
+    {
+      title: 'Destination',
+      dataIndex: 'destination',
+      key: 'destination',
+    },
+    {
+        title: 'Car Requested',
+        dataIndex: 'plateNumber',
+        key: 'plateNumber',
+      },
+      {
+        title: 'Weight',
+        dataIndex: 'weight',
+        key: 'weight',
+      },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: status => (
+        <Tag color={status === 'pending' ? 'gold' : 'green'} key={status}>
+          {status.toUpperCase()}
+        </Tag>
+      ),
+      filters: [
+        { text: 'Pending', value: 'pending' },
+        { text: 'Accepted', value: 'accepted' },
+      ],
+      onFilter: (value, record) => record.status.indexOf(value) === 0,
+    },
+    {
+        title: 'Action',
+        key: 'action',
+        render: (_, record) => (
+          <Button type="primary" onClick={() => handleDeliveryClick(record)}>
+            View Details
+          </Button>
+        ),
+      },
+  ];
+
   return (
-    <Layout  style={{ padding: '24px', minHeight: '100vh' }}>
-      <Row  gutter={[16, 16]}>
-        <div className='deliveries-list' span={12}> {/* This column will contain the deliveries list */}
-          <Card  title="Deliveries" style={{ marginBottom: 16 }}>
-            {filteredDeliveries?.length === 0 ? (
-              <p className='non-dels'>No deliveries found</p>
-            ) : (
-              <List
-                itemLayout="vertical"
-                size="large"
-                dataSource={filteredDeliveries}
-                renderItem={delivery => (
-                  <List.Item
-                    key={delivery.id}
-                    onClick={() => handleDeliveryClick(delivery)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <List.Item.Meta
-                      title={<a>{delivery.name}</a>}
-                      description={`Contact: ${delivery.contact}`}
-                    />
-                    <p>Pickup Point: {delivery.pickupPoint}</p>
-                    <p>Destination: {delivery.destination}</p>
-                    <p>Car Requested: {delivery.plateNumber}</p>
-                    <p>Weight: {delivery.weight}</p>
-                    <p>Status: {delivery.status}</p>
-                  </List.Item>
-                )}
-              />
-            )}
-          </Card>
-        </div>
-        <Col span={12}> {/* This column will contain the modal content */}
-          {/* The Modal will be rendered here, but outside the Col for now, then moved inside Antd Modal */}
-        </Col>
-      </Row>
+    <Layout style={{ padding: '24px', minHeight: '100vh' }}>
+      <Search
+        placeholder="Search deliveries"
+        onSearch={value => setSearchText(value)}
+        onChange={e => setSearchText(e.target.value)}
+        style={{ marginBottom: 16 }}
+      />
+      <Table
+        columns={columns}
+        dataSource={filteredDeliveries}
+        loading={deliveriesLoading}
+        rowKey="uid"
+        pagination={{ pageSize: 5 }}
+      />
 
       <AntdModal
         title="Delivery Map"
