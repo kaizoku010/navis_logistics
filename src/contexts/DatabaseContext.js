@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { firebaseClient } from '../api/firebaseAdmin';
 
@@ -18,16 +17,16 @@ export const DatabaseProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [deliveriesLoading, setDeliveriesLoading] = useState(false);
 
-    const fetchDriversFromAPI = () => {
+    const fetchDriversFromAPI = useCallback(() => {
         setLoading(true);
         const unsubscribe = firebaseClient.listenToCollection('drivers', (data) => {
             setDrivers(data);
             setLoading(false);
         });
         return unsubscribe; // Return unsubscribe function
-    };
+    }, []);
 
-    const saveDriverDataToAPI = async (driverData) => {
+    const saveDriverDataToAPI = useCallback(async (driverData) => {
         setLoading(true);
         // Add default values for new fields if not provided
         const dataToSave = {
@@ -42,18 +41,18 @@ export const DatabaseProvider = ({ children }) => {
         const result = await firebaseClient.saveToFirestore('drivers', dataToSave);
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const fetchTrucksFromAPI = () => {
+    const fetchTrucksFromAPI = useCallback(() => {
         setLoading(true);
         const unsubscribe = firebaseClient.listenToCollection('trucks', (data) => {
             setTrucks(data);
             setLoading(false);
         });
         return unsubscribe; // Return unsubscribe function
-    };
+    }, []);
 
-    const saveTruckDataToAPI = async (truckData) => {
+    const saveTruckDataToAPI = useCallback(async (truckData) => {
         setLoading(true);
         // Add default values for new fields if not provided
         const dataToSave = {
@@ -67,9 +66,9 @@ export const DatabaseProvider = ({ children }) => {
         const result = await firebaseClient.saveToFirestore('trucks', dataToSave, documentId);
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const fetchAllTrucksFromAPI = async () => {
+    const fetchAllTrucksFromAPI = useCallback(async () => {
         setLoading(true);
         try {
             const result = await firebaseClient.getFromFirestore('trucks');
@@ -84,23 +83,23 @@ export const DatabaseProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchAssignmentsFromAPI = async () => {
+    const fetchAssignmentsFromAPI = useCallback(async () => {
         setLoading(true);
         const result = await firebaseClient.getFromFirestore('assignments');
         if (Array.isArray(result)) {
             setAssignments(result);
         }
         setLoading(false);
-    };
+    }, []);
 
-    const saveAssignmentToAPI = async (assignmentData) => {
+    const saveAssignmentToAPI = useCallback(async (assignmentData) => {
         setLoading(true);
         const result = await firebaseClient.saveToFirestore('assignments', assignmentData);
         setLoading(false);
         return result;
-    };
+    }, []);
 
     const fetchDeliveriesFromAPI = useCallback(async () => {
         setDeliveriesLoading(true);
@@ -118,14 +117,14 @@ export const DatabaseProvider = ({ children }) => {
         }
     }, []);
 
-    const saveDeliveryToAPI = async (deliveryData) => {
+    const saveDeliveryToAPI = useCallback(async (deliveryData) => {
         setLoading(true);
         const result = await firebaseClient.saveToFirestore('deliveries', deliveryData);
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const fetchNonUserDeliveriesFromAPI = async () => {
+    const fetchNonUserDeliveriesFromAPI = useCallback(async () => {
         setLoading(true);
         try {
             const result = await firebaseClient.getFromFirestore('non_user_requests');
@@ -139,23 +138,23 @@ export const DatabaseProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const saveNonUserRequestToAPI = async (requestData) => {
+    const saveNonUserRequestToAPI = useCallback(async (requestData) => {
         setLoading(true);
         const result = await firebaseClient.saveToFirestore('non_user_requests', requestData);
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const updateDeliveryStatusInAPI = async (deliveryId, status) => {
+    const updateDeliveryStatusInAPI = useCallback(async (deliveryId, status) => {
         setLoading(true);
         const result = await firebaseClient.updateInFirestore('non_user_requests', deliveryId, { status });
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const updateDriverLocationInAPI = async (driverId, latitude, longitude, status) => {
+    const updateDriverLocationInAPI = useCallback(async (driverId, latitude, longitude, status) => {
         setLoading(true);
         const result = await firebaseClient.updateInFirestore('drivers', driverId, {
             currentLatitude: latitude,
@@ -164,35 +163,52 @@ export const DatabaseProvider = ({ children }) => {
         });
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const updateDeliveryStatusForDeliveryCollectionInAPI = async (deliveryId, status) => {
+    const updateDeliveryStatusForDeliveryCollectionInAPI = useCallback(async (deliveryId, status, acceptedBy, truckId, driverId) => {
         setLoading(true);
-        const result = await firebaseClient.updateInFirestore('deliveries', deliveryId, { status });
+        const dataToUpdate = { 
+            status,
+            acceptedBy,
+            truckId,
+            driverId
+        };
+
+        // console.log("Delivery assignment data to save: ", dataToUpdate)
+        const result = await firebaseClient.updateInFirestore('deliveries', deliveryId, dataToUpdate);
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const deleteDriver = async (driverId) => {
+    const declineDelivery = useCallback(async (deliveryId, companyId) => {
+        setLoading(true);
+        const result = await firebaseClient.updateInFirestore('deliveries', deliveryId, {
+            declinedBy: firebaseClient.firestore.FieldValue.arrayUnion(companyId)
+        });
+        setLoading(false);
+        return result;
+    }, []);
+
+    const deleteDriver = useCallback(async (driverId) => {
         setLoading(true);
         const result = await firebaseClient.deleteFromFirestore('drivers', driverId);
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const deleteTruck = async (truckId) => {
+    const deleteTruck = useCallback(async (truckId) => {
         setLoading(true);
         const result = await firebaseClient.deleteFromFirestore('trucks', truckId);
         setLoading(false);
         return result;
-    };
+    }, []);
 
-    const updateDriver = async (driverId, driverData) => {
+    const updateDriver = useCallback(async (driverId, driverData) => {
         setLoading(true);
         const result = await firebaseClient.updateInFirestore('drivers', driverId, driverData);
         setLoading(false);
         return result;
-    };
+    }, []);
     
     useEffect(() => {
         const unsubscribeDrivers = fetchDriversFromAPI();
@@ -202,7 +218,7 @@ export const DatabaseProvider = ({ children }) => {
             unsubscribeDrivers();
             unsubscribeTrucks();
         };
-    }, []); // Empty dependency array to run once on mount and cleanup on unmount
+    }, [fetchDriversFromAPI, fetchTrucksFromAPI]); 
 
     const value = {
         drivers,
@@ -227,6 +243,7 @@ export const DatabaseProvider = ({ children }) => {
         updateDriverLocationInAPI, // Added
         updateDeliveryStatusInAPI,
         updateDeliveryStatusForDeliveryCollectionInAPI, // Corrected
+        declineDelivery, // Added
         deleteDriver,
         deleteTruck,
         updateDriver

@@ -18,9 +18,11 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         try {
             const { user } = await createUserWithEmailAndPassword(auth, email, password);
+            const companyId = company.toLowerCase().replace(/\s/g, '-');
             await setDoc(doc(firestore, "users", user.uid), {
                 username,
                 company,
+                companyId,
                 accountType,
                 imageUrl
             });

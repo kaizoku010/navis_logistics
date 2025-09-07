@@ -59,7 +59,7 @@ export const firebaseClient = {
 
   getFromFirestore: async (collectionName, documentId = null) => {
     try {
-      console.log(`getFromFirestore: Attempting to fetch from collection: ${collectionName}`);
+      // console.log(`getFromFirestore: Attempting to fetch from collection: ${collectionName}`);
       if (documentId) {
         const docSnap = await getDoc(doc(firestore, collectionName, documentId));
         if (!docSnap.exists()) {
@@ -67,12 +67,12 @@ export const firebaseClient = {
           return null;
         }
         const data = { id: docSnap.id, ...docSnap.data() };
-        console.log(`getFromFirestore: Document ${documentId} data:`, data);
+        // console.log(`getFromFirestore: Document ${documentId} data:`, data);
         return data;
       } else {
         const querySnapshot = await getDocs(collection(firestore, collectionName));
         const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log(`getFromFirestore: Successfully fetched ${data.length} documents from ${collectionName}:`, data);
+        // console.log(`getFromFirestore: Successfully fetched ${data.length} documents from ${collectionName}:`, data);
         return data;
       }
     } catch (error) {
@@ -95,7 +95,7 @@ export const firebaseClient = {
 
   deleteFromFirestore: async (collectionName, documentId) => {
     try {
-      console.log(`deleteFromFirestore: Attempting to delete document ${documentId} from collection ${collectionName}`);
+      // console.log(`deleteFromFirestore: Attempting to delete document ${documentId} from collection ${collectionName}`);
       await deleteDoc(doc(firestore, collectionName, documentId));
       console.log(`deleteFromFirestore: Successfully deleted document ${documentId}`);
       return { success: true };

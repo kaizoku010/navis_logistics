@@ -78,9 +78,9 @@ function NewMap({ allRoutes, selectedRoute }) {
         )}
 
         {/* Render DirectionsService for each route */}
-        {allRoutes.map((route) => (
+        {allRoutes.map((route, index) => (
           <DirectionsService
-            key={route.uid} // Use uid as key
+            key={`${route.uid}-${index}`}
             options={{
               origin: route.pickupCoords,
               destination: route.destinationCoords,
@@ -91,9 +91,9 @@ function NewMap({ allRoutes, selectedRoute }) {
         ))}
 
         {/* Render DirectionsRenderer for each route */}
-        {allRoutes.map((route) => directionsResponses[route.uid] && (
+        {allRoutes.map((route, index) => directionsResponses[route.uid] && (
           <DirectionsRenderer
-            key={route.uid} // Use uid as key
+            key={`${route.uid}-${index}`}
             directions={directionsResponses[route.uid]}
             options={{
               suppressMarkers: true, // Suppress default markers as we add our own
