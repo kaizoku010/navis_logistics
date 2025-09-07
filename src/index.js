@@ -37,6 +37,7 @@ import {
   useDriverAuth,
 } from "./contexts/DriverAuthContext";
 import { FirebaseProvider } from "./contexts/firebaseContext";
+import DeliveriesEnroute from "./pages/DeliveriesEnroute.js";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -116,10 +117,10 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/root/cargo-mover",
+        path: "/root/enroute",
         element: (
-          <ProtectedRoute allowedRoles={["cargo-mover"]}>
-            <CargoMoverDash />
+          <ProtectedRoute allowedRoles={["track-owner", "root", "cargo-mover"]}>
+            <DeliveriesEnroute/>
           </ProtectedRoute>
         ),
       },

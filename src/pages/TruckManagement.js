@@ -5,14 +5,11 @@ import { useDatabase } from "../contexts/DatabaseContext";
 import { useAuth } from "../contexts/AuthContext";
 import "./TruckManagement.css";
 import { v4 as uuidv4 } from "uuid";
-import Maps from "../components/Maps2";
-import { Select } from "antd";
+import { Table, Button, Modal, Form, Input, Select, Upload, message, Image } from "antd";
+import { UploadOutlined } from '@ant-design/icons';
 import { storage, ref, uploadBytes, getDownloadURL } from "../contexts/firebaseContext"; // Adjust the import path accordingly
-import { auth } from "../contexts/firebaseContext"; // Import auth instance
-import { createUserWithEmailAndPassword } from "firebase/auth"; // Import Firebase Auth function
-import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions for users collection
 
-import NoDataSvg from "../media/no_data.svg";
+const { Option } = Select;
 
 function TruckManagement() {
   const {
@@ -30,42 +27,13 @@ function TruckManagement() {
   } = useDatabase();
   const { user } = useAuth();
 
-
-  // console.log("ai class: ", useAI)
-  
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editTruck, setEditTruck] = useState(null);
-  const [truckType, setTruckType] = useState("");
-  const [truckImage, setTruckImage] = useState(null);
-  const [numberPlate, setNumberPlate] = useState("");
-  const [yearOfManufacture, setYearOfManufacture] = useState("");
-  const [make, setMake] = useState("");
-  const [load, setLoad] = useState("");
-  const [mileage, setMileage] = useState("");
-  const [fuelType, setFuelType] = useState("");
-  const [selectedDriver, setSelectedDriver] = useState("");
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  const [editingTruck, setEditingTruck] = useState(null);
   const [selectedTruck, setSelectedTruck] = useState(null);
-  const [truckSpeed, setTruckSpeed] = useState()
-  const [cargoType, setCargoType] = useState("");
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
-  const [isAssigning, setIsAssigning] = useState(false);
-  const [isAddingTruck, setIsAddingTruck] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const trucksPerPage = 12;
-
-  // New state for adding driver
-  const [isAddDriverModalOpen, setIsAddDriverModalOpen] = useState(false);
-  const [newDriverName, setNewDriverName] = useState('');
-  const [newDriverEmail, setNewDriverEmail] = useState('');
-  const [newDriverPassword, setNewDriverPassword] = useState('');
-  const [newDriverPhoneNumber, setNewDriverPhoneNumber] = useState('');
-  const [newDriverAge, setNewDriverAge] = useState('');
-  const [newDriverPermitId, setNewDriverPermitId] = useState('');
-  const [newDriverNinNumber, setNewDriverNinNumber] = useState('');
-  const [newDriverImage, setNewDriverImage] = useState(null);
-  const [isAddingDriver, setIsAddingDriver] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState("");
+  const [form] = Form.useForm();
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     fetchTrucksFromAPI();
@@ -73,143 +41,61 @@ function TruckManagement() {
     fetchAssignmentsFromAPI();
   }, []);
 
-  
   const handleImageUpload = async (file) => {
-
     const sanitizedFileName = file.name.replace(/\s+/g, '_');
-  
-    // Creating a reference with the sanitized file name
     const storageRef = ref(storage, `navis_truck_images/${sanitizedFileName}`);
-
-    // Upload the file
     await uploadBytes(storageRef, file);
-  
-    // Get the download URL
-    const imageUrl = await getDownloadURL(storageRef);
-  
-    return imageUrl;
+    return await getDownloadURL(storageRef);
   };
 
-  const handleAddTruck = async (e) => {
-    e.preventDefault();
-    if (!truckType || !truckImage || !numberPlate || !yearOfManufacture || !make || !mileage || !fuelType || !load || !cargoType) {
-      alert("Please provide all truck details");
-      return;
-    }
-
-    setIsAddingTruck(true);
+  const onFinish = async (values) => {
     try {
-      const imageUrl = await handleImageUpload(truckImage);
+      let imageUrl = values.imageUrl;
+      if (values.upload && values.upload[0]) {
+        imageUrl = await handleImageUpload(values.upload[0].originFileObj);
+      }
+
       const truckData = {
-        uid: uuidv4(),
-        type: truckType,
-        imageUrl: imageUrl,
-        numberPlate: numberPlate,
-        yearOfManufacture: yearOfManufacture,
-        make: make,
-        mileage: mileage,
-        fuelType: fuelType,
-        load: load,
+        ...values,
+        imageUrl,
+        uid: editingTruck ? editingTruck.uid : uuidv4(),
         company: user.company,
-        speed: truckSpeed,
-        cargoType: cargoType
       };
+
       await saveTruckDataToAPI(truckData);
       fetchTrucksFromAPI();
-      setTruckType("");
-      setTruckImage(null);
-      setNumberPlate("");
-      setYearOfManufacture("");
-      setMake("");
-      setMileage("");
-      setFuelType("");
-      setLoad("");
-      setTruckSpeed("")
+      setIsEditModalVisible(false);
+      form.resetFields();
+      message.success(`Truck ${editingTruck ? 'updated' : 'added'} successfully!`);
     } catch (error) {
-      console.error("Error adding truck:", error.message);
-      alert("Error adding truck");
-    } finally {
-      setIsAddingTruck(false);
+      console.error("Error saving truck:", error.message);
+      message.error("Error saving truck");
     }
   };
 
-  const openMapModal = () => {
-    setIsMapModalOpen(true);
+  const showEditModal = (truck = null) => {
+    setEditingTruck(truck);
+    form.setFieldsValue(truck ? { ...truck, upload: [] } : {type: '', cargoType: ''});
+    setIsEditModalVisible(true);
   };
-  
-  const closeMapModal = () => {
-    setIsMapModalOpen(false);
-  };
-  
 
-  const openEditModal = (truck) => {
-    setEditTruck(truck);
-    setTruckType(truck.type || "");
-    setTruckImage(null); // No need to set the image here unless it's changed
-    setNumberPlate(truck.numberPlate || "");
-    setYearOfManufacture(truck.yearOfManufacture || "");
-    setMake(truck.make || "");
-    setMileage(truck.mileage || "");
-    setFuelType(truck.fuelType || "");
-    setLoad(truck.load || "");
-    setTruckSpeed(truck.speed || "");
-    setCargoType(truck.cargoType || "");
-    setIsEditModalOpen(true);
+  const showDetailModal = (truck) => {
+    setSelectedTruck(truck);
+    setIsDetailModalVisible(true);
   };
-  
 
-  const handleEditTruck = async (e) => {
-    e.preventDefault();
-    if (!editTruck) {
-      alert("No truck selected for editing");
-      return;
-    }
-  
-    try {
-      // Upload a new image if one is provided
-      const imageUrl = truckImage ? await handleImageUpload(truckImage) : editTruck.imageUrl;
-  
-      // Prepare the updated truck data
-      const updatedTruckData = {
-        ...editTruck,
-        type: truckType || editTruck.type,
-        imageUrl: imageUrl,
-        numberPlate: numberPlate || editTruck.numberPlate,
-        yearOfManufacture: yearOfManufacture || editTruck.yearOfManufacture,
-        make: make || editTruck.make,
-        mileage: mileage || editTruck.mileage,
-        fuelType: fuelType || editTruck.fuelType,
-        load: load || editTruck.load,
-        speed: truckSpeed || editTruck.speed,
-        cargoType: cargoType || editTruck.cargoType,
-        
-      };
-  
-      await saveTruckDataToAPI(updatedTruckData);
-      setTruckType("");
-      setTruckImage(null);
-      setNumberPlate("");
-      setYearOfManufacture("");
-      setMake("");
-      setMileage("");
-      setFuelType("");
-      setLoad("");
-      setTruckSpeed("");
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error("Error updating truck:", error.message);
-      alert("Error updating truck");
+  const handleDelete = async (truckId) => {
+    if (window.confirm("Are you sure you want to delete this truck?")) {
+      try {
+        await deleteTruck(truckId);
+        fetchTrucksFromAPI();
+        message.success("Truck deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting truck:", error.message);
+        message.error("Error deleting truck");
+      }
     }
   };
-  
-  
-
-  const handleTruckImageChange = (e) => {
-    setTruckImage(e.target.files[0]);
-  };
-
-
-console.log("selected truck: ", selectedDriver)
 
   const handleAssignTruck = async () => {
     if (!selectedTruck || !selectedDriver) {
@@ -217,7 +103,6 @@ console.log("selected truck: ", selectedDriver)
       return;
     }
 
-    setIsAssigning(true);
     try {
       await saveAssignmentToAPI({
         driverId: selectedDriver,
@@ -226,31 +111,11 @@ console.log("selected truck: ", selectedDriver)
       // Update the driver's currentTruckId
       await updateDriver(selectedDriver, { currentTruckId: selectedTruck.uid });
       fetchAssignmentsFromAPI(); // Re-fetch assignments
-      alert("Truck assigned successfully!");
+      message.success("Truck assigned successfully!");
+      setIsDetailModalVisible(false);
     } catch (error) {
       console.error("Error assigning truck:", error.message);
-      alert("Error assigning truck");
-    } finally {
-      setIsAssigning(false);
-    }
-  };
-
-  const openTruckDetailsModal = (truck) => {
-    setSelectedTruck(truck);
-    setIsDetailModalOpen(true);
-  };
-
-  const handleDeleteTruck = async (truckId) => {
-    console.log("handleDeleteTruck - user:", user);
-    if (window.confirm("Are you sure you want to delete this truck?")) {
-      try {
-        await deleteTruck(truckId);
-        setIsDetailModalOpen(false); // Close modal after deletion
-        alert("Truck deleted successfully!");
-      } catch (error) {
-        console.error("Error deleting truck:", error.message);
-        alert("Error deleting truck");
-      }
+      message.error("Error assigning truck");
     }
   };
 
@@ -262,274 +127,165 @@ console.log("selected truck: ", selectedDriver)
   };
 
   const filteredTrucks = trucks.filter((truck) => {
-    const searchLower = searchQuery.toLowerCase();
+    const searchLower = searchText.toLowerCase();
     return (
-      truck.type.toLowerCase().includes(searchLower) ||
-      truck.numberPlate.toLowerCase().includes(searchLower) ||
-      truck.make.toLowerCase().includes(searchLower)
+      (truck.type && truck.type.toLowerCase().includes(searchLower)) ||
+      (truck.numberPlate && truck.numberPlate.toLowerCase().includes(searchLower)) ||
+      (truck.make && truck.make.toLowerCase().includes(searchLower))
     );
   });
 
-  const indexOfLastTruck = currentPage * trucksPerPage;
-  const indexOfFirstTruck = indexOfLastTruck - trucksPerPage;
-  const currentTrucks = filteredTrucks.slice(indexOfFirstTruck, indexOfLastTruck);
-  const totalPages = Math.ceil(filteredTrucks.length / trucksPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
+  const columns = [
+    { title: 'Image', dataIndex: 'imageUrl', key: 'imageUrl', render: (text) => <Image src={text} width={50} /> },
+    { title: 'Type', dataIndex: 'type', key: 'type', filters: [...new Set(trucks.map(t => t.type))].map(t => ({text: t, value: t})), onFilter: (value, record) => record.type.includes(value) },
+    { title: 'Number Plate', dataIndex: 'numberPlate', key: 'numberPlate' },
+    { title: 'Make', dataIndex: 'make', key: 'make' },
+    { title: 'Assigned Driver', key: 'assignedDriver', render: (text, record) => getAssignedDriver(record.uid) },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (text, record) => (
+        <span>
+          <Button type="link" onClick={() => showEditModal(record)}>Edit</Button>
+          <Button type="link" danger onClick={() => handleDelete(record.uid)}>Delete</Button>
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="truck-management">
       <div className="truck_header">
-      <h1>Truck Management</h1>
-      <button className="add-truck-btn2" onClick={openMapModal}>Add New Truck</button>
-
+        <h1>Truck Management</h1>
+        <Button type="primary" onClick={() => showEditModal()}>Add New Truck</Button>
       </div>
-      {loading && <div className="progress-bar" />}
-      <div className="truck-div">
+      <Input.Search
+        placeholder="Search for a truck..."
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        style={{ marginBottom: 16 }}
+      />
+      <Table
+        columns={columns}
+        dataSource={filteredTrucks}
+        loading={loading}
+        rowKey="uid"
+        onRow={(record) => ({
+          onClick: () => {
+            showDetailModal(record);
+          },
+        })}
+        pagination={{ pageSize: 10 }}
+      />
 
-        <div className="maps_section">
+      <Modal
+        title={editingTruck ? "Edit Truck" : "Add New Truck"}
+        visible={isEditModalVisible}
+        onCancel={() => {
+          setIsEditModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+      >
+        <Form form={form} layout="vertical" onFinish={onFinish}>
+          <Form.Item name="type" label="Truck Type" rules={[{ required: true }]}>
+            <Select placeholder="Select Truck Type">
+              <Option value="Flatbed truck">Flatbed Truck</Option>
+              <Option value="Box truck(dry van)">Box Truck(Dry van)</Option>
+              <Option value="Refrigerated Truck(Reefers)">Refrigerated Truck(Reefers)</Option>
+              <Option value="Tankers">Tankers</Option>
+              <Option value="Dump Truck">Dump Truck</Option>
+              <Option value="Car Carrier">Car Carrier</Option>
+              <Option value="Livestock Truck">Livestock Truck</Option>
+              <Option value="Container Truck">Container Truck</Option>
+              <Option value="LTL Trucks">LTL Truck</Option>
+              <Option value="Heavy Haulers">Heavy Hauler</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="cargoType" label="Cargo Type" rules={[{ required: true }]}>
+            <Select placeholder="Select Cargo Type">
+              <Option value="solid">Solid</Option>
+              <Option value="liquid">Liquid</Option>
+              <Option value="both">Both</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="numberPlate" label="Number Plate" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="yearOfManufacture" label="Year of Manufacture">
+            <Input />
+          </Form.Item>
+          <Form.Item name="make" label="Make">
+            <Input />
+          </Form.Item>
+          <Form.Item name="mileage" label="Mileage">
+            <Input />
+          </Form.Item>
+          <Form.Item name="load" label="Load Capacity">
+            <Input />
+          </Form.Item>
+          <Form.Item name="fuelType" label="Fuel Type">
+            <Input />
+          </Form.Item>
+          <Form.Item name="speed" label="Speed">
+            <Input />
+          </Form.Item>
+          <Form.Item name="upload" label="Truck Image" valuePropName="fileList" getValueFromEvent={(e) => e.fileList}>
+            <Upload name="logo" listType="picture" beforeUpload={() => false}>
+              <Button icon={<UploadOutlined />}>Click to upload</Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              {editingTruck ? "Update Truck" : "Add Truck"}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
 
-        {isMapModalOpen && (
-          <div className="modal2 addtrucks">
-            <div className="mm-holderw">
-              <div className="modal-content29">
-                <h2>Add New Truck</h2>
-                <form onSubmit={handleAddTruck}>
-                <Select className="select-truck" value={truckType} onChange={(value) => setTruckType(value)}>
-  <option value="" disabled>Select Truck Type</option>
-  <option value="Flatbed truck">Flatbed Truck</option>
-  <option value="Box truck(dry van)">Box Truck(Dry van)</option>
-  <option value="Refrigerated Truck(Reefers)">Refrigerated Truck(Reefers)</option>
-  <option value="Tankers">Tankers</option>
-  <option value="Dump Truck">Dump Truck</option>
-  <option value="Car Carrier">Car Carrier</option>
-  <option value="Livestock Truck">Livestock Truck</option>
-  <option value="Container Truck">Container Truck</option>
-  <option value="LTL Trucks">LTL Truck</option>
-  <option value="Heavy Haulers">Heavy Hauler</option>
-</Select>
-
-<Select className="select-truck" value={cargoType} onChange={(value) => setCargoType(value)}>
-  <option value="" disabled>Select Cargo Type</option>
-  <option value="solid">Solid</option>
-  <option value="liquid">Liquid</option>
-  <option value="both">Both</option>
-</Select>
-
-                  <div className="">
-                    <div className="form-inner">
-                      <input type="text" placeholder="Number Plate" value={numberPlate} onChange={(e) => setNumberPlate(e.target.value)} />
-                      <input type="text" placeholder="Year of Manufacture" value={yearOfManufacture} onChange={(e) => setYearOfManufacture(e.target.value)} />
-                      <input type="text" placeholder="Make" value={make} onChange={(e) => setMake(e.target.value)} />
-                      <input type="text" placeholder="Mileage" value={mileage} onChange={(e) => setMileage(e.target.value)} />
-                      <input type="text" placeholder="Load Capacity" value={load} onChange={(e) => setLoad(e.target.value)} />
-                      <input type="text" placeholder="Fuel Type" value={fuelType} onChange={(e) => setFuelType(e.target.value)} />
-                      <input type="text" placeholder="Speed" value={truckSpeed} onChange={(e) => setTruckSpeed(e.target.value)} />
-                      <input type="file" onChange={handleTruckImageChange} />
-                    </div>
-                  </div>
-                  <button className="add-truck-btn"  type="submit" disabled={isAddingTruck}>{isAddingTruck ? "Adding Truck..." : "Add Truck"}</button>
-                </form>
-                <button onClick={closeMapModal}>Close</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-          <div className="tm-map">
-<div className="truck-actions">
-        <input
-            type="text"
-            placeholder="Search for a truck..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-
-        
-             <div className="pagination">
-              <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
-                Previous
-              </button>
-              <span>{currentPage} of {totalPages}</span>
-              <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
-                Next
-              </button>
-            </div>  
-</div>
-            <div className="wideMe">
-      
-
-
-
-          <div className="trucks-list">
-            {loading ? (
-              <p>Loading...</p>
-            ) : currentTrucks.length === 0 ? (
-              <div className="no-data-div">
-              <p className="no-data-text">Opps, No Trucks Found!</p>
-              <img className="no-data-img" src={NoDataSvg} alt="No data" />
-
-              </div>
-            ) : (
-                currentTrucks.map((truck) => (
-                <div key={truck.uid} className="truck-item" onClick={() => openTruckDetailsModal(truck)}>
-                  <img className="car-image" src={truck.imageUrl} alt={truck.type} />
-                  <div className="car-details">
-                    <h2>{truck.type}</h2>
-                    <p>Number Plate: {truck.numberPlate}</p>
-                    <p>Year of Manufacture: {truck.yearOfManufacture}</p>
-                    <p>Make: {truck.make}</p>
-                    <p>Mileage: {truck.mileage}</p>
-                    <p>Fuel Type: {truck.fuelType}</p>
-                    <p>Load: {truck.load}</p>
-                    <p>Speed: {truck.speed || ""}</p>
-                    <p>Company: {truck.company || ""}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          {/* <div className="pagination">
-              <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
-                Previous
-              </button>
-              <span>{currentPage} of {totalPages}</span>
-              <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
-                Next
-              </button>
-            </div> */}
-        </div>
-        </div>
-        </div>
-
-      
-        {isEditModalOpen && editTruck && (
-  <div style={{zIndex:222}}  className="modal2">
-    <div className="mm-holder">
-      <div className="modal-content2">
-        <h2>Edit Truck Details</h2>
-        <form onSubmit={handleEditTruck}>
-          <input
-            type="text"
-            className="ed_input"
-            placeholder="Number Plate"
-            value={numberPlate}
-            onChange={(e) => setNumberPlate(e.target.value)}
-          />
-          <input
-            type="text"
-            className="ed_input"
-            placeholder="Year of Manufacture"
-            value={yearOfManufacture}
-            onChange={(e) => setYearOfManufacture(e.target.value)}
-          />
-          <input
-            type="text"
-            className="ed_input"
-            placeholder="Make"
-            value={make}
-            onChange={(e) => setMake(e.target.value)}
-          />
-          <input
-            type="text"
-            className="ed_input"
-            placeholder="Truck Speed"
-            value={truckSpeed}
-            onChange={(e) => setTruckSpeed(e.target.value)}
-          />
-          <input
-            type="text"
-            className="ed_input"
-            placeholder="Load Capacity"
-            value={load}
-            onChange={(e) => setLoad(e.target.value)}
-          />
-          <input
-            type="text"
-            className="ed_input"
-            placeholder="Mileage"
-            value={mileage}
-            onChange={(e) => setMileage(e.target.value)}
-          />
-          <input
-            type="text"
-            className="ed_input"
-            placeholder="Fuel Type"
-            value={fuelType}
-            onChange={(e) => setFuelType(e.target.value)}
-          />
-          <Select
-            className="ed_input"
-            value={cargoType}
-            onChange={(value) => setCargoType(value)}
-          >
-            <option value="" disabled>Select Cargo Type</option>
-            <option value="solid">Solid</option>
-            <option value="liquid">Liquid</option>
-            <option value="both">Both</option>
-          </Select>
-          <input type="file" onChange={handleTruckImageChange} />
-          <button className="update_truck_btn" type="submit" disabled={loading}>
-            {loading ? "Updating Truck..." : "Update Truck"}
-          </button>
-        </form>
-        <button onClick={() => setIsEditModalOpen(false)}>Close</button>
-      </div>
-      <div className="modal-image">
-        <img className="truck-modal-image" src={editTruck.imageUrl} alt={editTruck.type} />
-      </div>
-    </div>
-  </div>
-)}
-
-
-        {isDetailModalOpen && selectedTruck && (
-          <div className="modal2">
-            <div className="mm-holder">
-              <div className="modal-content2">
-                <h2>Truck Details</h2>
-                <p>Number Plate: {selectedTruck.numberPlate}</p>
-                <p>Year of Manufacture: {selectedTruck.yearOfManufacture}</p>
-                <p>Make: {selectedTruck.make}</p>
-                <p>Mileage: {selectedTruck.mileage}</p>
-                <p>Fuel Type: {selectedTruck.fuelType}</p>
-                <p>Load: {selectedTruck.load}</p>
-                <p>speed: {selectedTruck.speed}</p>
-
-                <p>Driver: {getAssignedDriver(selectedTruck.uid)}</p> 
-
-                <div className="spinner">
-                  <label>Assign a driver from the options below.</label>
-                <Select
-                className="sel"
-  value={selectedDriver}
-  onChange={(value) => setSelectedDriver(value)} // value directly provides the selected value
-  placeholder="Select Driver"
->
-  {drivers.map((driver) => (
-    <option key={driver.uid} value={driver.uid}>
-      {driver.name}
-    </option>
-  ))}
-</Select>
-                  <button className="assign-truck-btn" onClick={handleAssignTruck} disabled={isAssigning}>
-                    {isAssigning ? 'Assigning...' : 'Assign Truck'}
-                  </button>
-                </div>
-                <button className="edit_truck" onClick={() => openEditModal(selectedTruck)}>Edit Truck</button>
-                <button className="delete_truck" onClick={() => handleDeleteTruck(selectedTruck.id)}>Delete Truck</button>
-                <button onClick={() => setIsDetailModalOpen(false)}>Close</button>
-
-              </div>
-              <div className="modal-image">
-                <img className="truck-modal-image" src={selectedTruck.imageUrl} alt={selectedTruck.type} />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      {selectedTruck && (
+        <Modal
+          title="Truck Details"
+          visible={isDetailModalVisible}
+          onCancel={() => setIsDetailModalVisible(false)}
+          footer={[
+            <Button key="back" onClick={() => setIsDetailModalVisible(false)}>
+              Close
+            </Button>,
+          ]}
+        >
+          <Image src={selectedTruck.imageUrl} width={200} />
+          <p><strong>Type:</strong> {selectedTruck.type}</p>
+          <p><strong>Number Plate:</strong> {selectedTruck.numberPlate}</p>
+          <p><strong>Make:</strong> {selectedTruck.make}</p>
+          <p><strong>Year of Manufacture:</strong> {selectedTruck.yearOfManufacture}</p>
+          <p><strong>Mileage:</strong> {selectedTruck.mileage}</p>
+          <p><strong>Fuel Type:</strong> {selectedTruck.fuelType}</p>
+          <p><strong>Load:</strong> {selectedTruck.load}</p>
+          <p><strong>Speed:</strong> {selectedTruck.speed}</p>
+          <p><strong>Cargo Type:</strong> {selectedTruck.cargoType}</p>
+          <p><strong>Assigned Driver:</strong> {getAssignedDriver(selectedTruck.uid)}</p>
+          
+          <Form layout="vertical">
+            <Form.Item label="Assign Driver">
+              <Select
+                placeholder="Select a driver"
+                onChange={(value) => setSelectedDriver(value)}
+                style={{ width: '100%' }}
+              >
+                {drivers.map(driver => (
+                  <Option key={driver.uid} value={driver.uid}>{driver.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" onClick={handleAssignTruck} loading={loading}>
+                Assign Truck
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
     </div>
   );
 }
