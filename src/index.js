@@ -24,6 +24,7 @@ import TruckManagement from "./pages/TruckManagement";
 import CargoMoverDash from "./pages/CargoMoverDash";
 import TruckerDash from "./pages/TruckOwnerDash";
 import DriverDashboard from "./pages/DriverDashboard"; // New import
+import DriverProfile from "./pages/DriverProfile";
 import Homepage from "./pages/HomePage.js";
 import Contact from "./pages/Contact";
 import Deliveries from "./pages/Deliveries.js";
@@ -138,6 +139,14 @@ const router = createBrowserRouter([
         element: (
           <DriverProtectedRoute allowedRoles={["driver"]}>
             <DriverDashboard />
+          </DriverProtectedRoute>
+        ),
+      },
+      {
+        path: "/root/driver/profile",
+        element: (
+          <DriverProtectedRoute allowedRoles={["driver"]}>
+            <DriverProfile />
           </DriverProtectedRoute>
         ),
       },

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDriverAuth } from '../contexts/DriverAuthContext'; // Import useDriverAuth
+import Logo from "../assets/logo2.png";
 import './logic.css';
 
 function LoginDriver() {
@@ -10,6 +11,11 @@ function LoginDriver() {
   const [loading, setLoading] = useState(false); // Local loading state
   const { driverLogin } = useDriverAuth(); // Use driverLogin from DriverAuthContext
   const navigate = useNavigate();
+
+  const home =()=>{
+    navigate("/");
+  
+  }
 
   const handleLogin = async (e) => { // Make handleLogin async
     e.preventDefault();
@@ -38,31 +44,33 @@ function LoginDriver() {
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleLogin} className="login-form">
+    <div className='loginHolder'>
+      <img className='navis-logo' src={Logo} alt="Logo" />
+      <form className='navis-form' onSubmit={handleLogin}>
         <h2>Driver Login</h2>
-        {error && <p className="error">{error}</p>}
-        <div className="input-group">
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          className='nav-input'
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          className='nav-input'
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {error && <p className="error-message">{error}</p>}
+        <div className='btns-login'>
+          <button className='driver-login-btn btn-login' type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
         </div>
-        <div className="input-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading}>{loading ? 'Loading...' : 'Login'}</button>
+        <button className='back_btn' onClick={home} type="button">
+            Back
+          </button>
       </form>
     </div>
   );

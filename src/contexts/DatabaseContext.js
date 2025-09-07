@@ -168,15 +168,38 @@ export const DatabaseProvider = ({ children }) => {
 
     const updateDeliveryStatusForDeliveryCollectionInAPI = useCallback(async (deliveryId, status, acceptedBy, truckId, driverId) => {
         setLoading(true);
-        const dataToUpdate = { 
+        const dataToUpdate = {
             status,
             acceptedBy,
             truckId,
             driverId
         };
 
-        // console.log("Delivery assignment data to save: ", dataToUpdate)
         const result = await firebaseClient.updateInFirestore('deliveries', deliveryId, dataToUpdate);
+
+        // If delivery is marked as 'delivered', add it to driver's pastDeliveries
+        if (status === 'delivered' && driverId) {
+            try {
+                // Fetch the delivery details to store a summary in pastDeliveries
+                const deliveryDoc = await firebaseClient.getFromFirestore('deliveries', deliveryId);
+                if (deliveryDoc) {
+                    const pastDeliverySummary = {
+                        id: deliveryDoc.id,
+                        name: deliveryDoc.name,
+                        pickupPoint: deliveryDoc.pickupPoint,
+                        destination: deliveryDoc.destination,
+                        deliveryDate: new Date().toISOString(), // Store completion date
+                        // Add other relevant fields for summary display
+                    };
+                    await firebaseClient.updateInFirestore('drivers', driverId, {
+                        pastDeliveries: firebaseClient.firestore.FieldValue.arrayUnion(pastDeliverySummary)
+                    });
+                }
+            } catch (error) {
+                console.error("Error updating driver's past deliveries:", error);
+            }
+        }
+
         setLoading(false);
         return result;
     }, []);

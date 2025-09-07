@@ -48,6 +48,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 9999; /* Added z-index */
   }
 
   .modal {
@@ -60,17 +61,23 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 9999; /* Added z-index */
   }
   
   .modal-content {
     background-color: #fff;
     padding: 20px;
     border-radius: 5px;
-    /* width: 300px; */
-        background-color: rgb(240, 239, 239);
-        /* flex-direction: column; */
+    background-color: rgb(240, 239, 239);
+    /* flex-direction: column; */ /* Keep this for inner content layout */
 
-    display: flex;
+    /* Centering properties */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 800px; /* Example max-width, adjust as needed */
+    width: 90%; /* Example width */
   }
 
 
@@ -78,11 +85,16 @@
     background-color: #fff;
     padding: 20px;
     border-radius: 5px;
-    /* width: 300px; */
-        background-color: rgb(240, 239, 239);
-        flex-direction: column;
+    background-color: rgb(240, 239, 239);
+    flex-direction: column; /* Keep this for inner content layout */
 
-    display: flex;
+    /* Centering properties */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 500px; /* Example max-width */
+    width: 90%; /* Example width */
   }
 
 

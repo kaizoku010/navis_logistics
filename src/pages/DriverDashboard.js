@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useDriverAuth } from '../contexts/DriverAuthContext'; // Use useDriverAuth
 import { useDatabase } from '../contexts/DatabaseContext';
 import NewMap from './NewMap'; // Reusing the NewMap component
+import { useNavigate } from 'react-router-dom'; // Added
+import { Card, Descriptions, List, Empty, Button } from 'antd';
 import './driverDashboard.css'; // Assuming a new CSS file for styling
 
 function DriverDashboard() {
   const { driver } = useDriverAuth(); // Get driver from useDriverAuth
   const { deliveries, trucks, assignments, fetchDeliveriesFromAPI, fetchTrucksFromAPI, fetchAssignmentsFromAPI, updateDriverLocationInAPI, updateDeliveryStatusForDeliveryCollectionInAPI } = useDatabase();
+  const navigate = useNavigate();
 
   const [currentDelivery, setCurrentDelivery] = useState(null);
   const [currentTruck, setCurrentTruck] = useState(null);
@@ -19,16 +22,25 @@ function DriverDashboard() {
   }, []);
 
   useEffect(() => {
-    if (driver && assignments.length > 0 && deliveries.length > 0 && trucks.length > 0) {
-      const assignment = assignments.find(a => a.driverId === driver.uid);
-      if (assignment) {
-        const delivery = deliveries.find(d => d.uid === assignment.deliveryId);
-        const truck = trucks.find(t => t.uid === assignment.truckId);
-        setCurrentDelivery(delivery);
-        setCurrentTruck(truck);
+    if (driver && deliveries.length > 0 && trucks.length > 0) {
+      // Use currentDeliveryId and currentTruckId directly from the driver object
+      const currentDeliveryId = driver.currentDeliveryId;
+      const currentTruckId = driver.currentTruckId;
+
+      let foundDelivery = null;
+      let foundTruck = null;
+
+      if (currentDeliveryId) {
+        foundDelivery = deliveries.find(d => d.id === currentDeliveryId); // Assuming delivery.id matches currentDeliveryId
       }
+      if (currentTruckId) {
+        foundTruck = trucks.find(t => t.id === currentTruckId); // Assuming truck.id matches currentTruckId
+      }
+
+      setCurrentDelivery(foundDelivery);
+      setCurrentTruck(foundTruck);
     }
-  }, [driver, assignments, deliveries, trucks]);
+  }, [driver, deliveries, trucks]); // Removed assignments from dependency array
 
   useEffect(() => {
     let intervalId;
@@ -46,7 +58,7 @@ function DriverDashboard() {
         );
       };
       updateLocation(); // Initial update
-      intervalId = setInterval(updateLocation, 300000); // 5 minutes
+      intervalId = setInterval(updateLocation, 600000); // 10 minutes
     }
 
     return () => {
@@ -96,28 +108,56 @@ function DriverDashboard() {
           )}
         </div>
         <div className="control-panel-section">
-          <h2>Current Delivery</h2>
-          {currentDelivery ? (
-            <div>
-              <p><strong>Name:</strong> {currentDelivery.name}</p>
-              <p><strong>Status:</strong> {currentDelivery.status}</p>
-              <p><strong>From:</strong> {currentDelivery.pickupPoint}</p>
-              <p><strong>To:</strong> {currentDelivery.destination}</p>
-              {currentTruck && (
-                <p><strong>Assigned Truck:</strong> {currentTruck.numberPlate} ({currentTruck.type})</p>
-              )}
-              <button onClick={handleStartDelivery} disabled={isTrackingLocation}>Start Delivery</button>
-              <button onClick={handleStopDelivery} disabled={!isTrackingLocation}>Stop Delivery</button>
-            </div>
-          ) : (
-            <p>No current delivery assigned.</p>
-          )}
-          <h2>Driver Profile</h2>
-          {driver?.imageUrl && (
-            <img src={driver.imageUrl} alt="Driver Profile" className="driver-profile-pic" />
-          )}
-          <p><strong>Name:</strong> {driver?.name}</p>
-          <p><strong>Email:</strong> {driver?.email}</p>
+          <Card title="Current Delivery" style={{ marginBottom: 20 }}>
+            {currentDelivery ? (
+              <>
+                <Descriptions column={1} size="small">
+                  <Descriptions.Item label="Name">{currentDelivery.name}</Descriptions.Item>
+                  <Descriptions.Item label="Status">{currentDelivery.status}</Descriptions.Item>
+                  <Descriptions.Item label="From">{currentDelivery.pickupPoint}</Descriptions.Item>
+                  <Descriptions.Item label="To">{currentDelivery.destination}</Descriptions.Item>
+                  {currentTruck && (
+                    <Descriptions.Item label="Assigned Truck">{currentTruck.numberPlate} ({currentTruck.type})</Descriptions.Item>
+                  )}
+                </Descriptions>
+                <div style={{ marginTop: 16 }}>
+                  <Button type="primary" onClick={handleStartDelivery} disabled={isTrackingLocation} style={{ marginRight: 8 }}>
+                    Start Delivery
+                  </Button>
+                  <Button onClick={handleStopDelivery} disabled={!isTrackingLocation}>
+                    Stop Delivery
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Empty description="No current delivery assigned." />
+            )}
+          </Card>
+
+          <Card title="Past Routes" style={{ marginBottom: 20 }}>
+            {driver?.pastDeliveries && driver.pastDeliveries.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={driver.pastDeliveries}
+                renderItem={(route, index) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={<strong>{route.name}</strong>}
+                      description={`From ${route.pickupPoint} to ${route.destination} (Completed: ${new Date(route.deliveryDate).toLocaleDateString()})`}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Empty description="No past routes to display yet." />
+            )}
+          </Card>
+
+          <div className="profile-link-section">
+            <Button type="default" onClick={() => navigate('/root/driver/profile')}>
+              View Full Profile
+            </Button>
+          </div>
         </div>
       </div>
     </div>

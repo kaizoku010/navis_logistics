@@ -311,7 +311,7 @@ function Drivers() {
       </div>
 
       {isModalOpen && (
-        <div style={{width:"fit-content"}} className='modal'>
+        <div className='modal'>
           <div className='modal-content2'>
             <h2>Add Driver</h2>
             {loading && <LinearProgress size="md"  variant="soft" value={progress} />}
@@ -437,7 +437,7 @@ function Drivers() {
       )}
 
       {isEditModalOpen && selectedDriver && (
-        <div style={{width:"fit-content"}} className='modal'>
+        <div className='modal'>
           <div className='modal-content2'>
             <h2>Edit Driver</h2>
             <form onSubmit={handleUpdateDriver}>

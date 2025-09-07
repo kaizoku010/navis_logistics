@@ -85,7 +85,7 @@ const handleLogout = async () => {
             </li>
            
             <li>
-              <Link to="enroute">Deliveries Enroute</Link>
+              <Link to="enroute">Deliveries Completed</Link>
             </li>
          
               </>

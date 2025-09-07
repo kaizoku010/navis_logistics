@@ -65,11 +65,4 @@
     z-index: 10; /* Ensure it's above the map */
 }
 
-.driver-profile-pic {
-    width: 100px; /* Adjust size as needed */
-    height: 100px; /* Adjust size as needed */
-    border-radius: 50%; /* Makes it circular */
-    object-fit: cover; /* Ensures the image covers the area without distortion */
-    margin-bottom: 15px;
-    border: 2px solid #ccc;
-}
+

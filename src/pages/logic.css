@@ -8,6 +8,10 @@ height: 100vh;
 background-image: url("../assets/bg.png");
 }
 
+.driver-login-btn{
+    width: 100% !important;
+}
+
 .navis-form{
     align-self: center;
     background-color: rgba(245, 245, 252, 0.651);
