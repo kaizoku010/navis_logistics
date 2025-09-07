@@ -3,13 +3,19 @@ import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
 import NewMap from './NewMap'; // Adjust the import path as necessary
 import './accepted_deliveries.css';
-import { Steps, Button } from 'antd';
+import { Card, List, Button, Pagination, Spin, Descriptions } from 'antd';
 
 const AcceptedDeliveries = () => {
   const { deliveries, trucks, assignments, loading, fetchDeliveriesFromAPI, fetchTrucksFromAPI, fetchAssignmentsFromAPI } = useDatabase();
   const { user } = useAuth();
   const [allRoutesData, setAllRoutesData] = useState([]); // New state for all routes
   const [selectedDelivery, setSelectedDelivery] = useState(null); // Keep for single route display
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5); // You can adjust this number
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = allRoutesData.slice(indexOfFirstItem, indexOfLastItem);
 
   // Fetch all necessary data on component mount
   useEffect(() => {
@@ -54,47 +60,49 @@ const AcceptedDeliveries = () => {
     <div className='map_section_div'>
       <div className='accepted_deliveries_list'>
         {loading ? (
-          <p>Loading deliveries...</p>
+          <Spin tip="Loading deliveries..." />
         ) : allRoutesData.length === 0 ? (
           <p>No pending/active deliveries found</p>
         ) : (
-          <ul>
-            {allRoutesData.map(delivery => (
-              <li
-                key={delivery.uid}
-                className='delivery-item'
-              >
-                <h3 className='del-name'>{delivery.name}</h3>
-                <p className='contact-text'>Contact: {delivery.contact}</p>
-                <p>Status: {delivery.status}</p> {/* Display status */}
-                {delivery.truckNumberPlate && <p>Truck: {delivery.truckNumberPlate}</p>} {/* Display truck if assigned */}
-                <div className='steps'>
-                  <Steps
-                    progressDot
-                    current={1}
-                    className='steps'
-                    direction="vertical"
-                    items={[
-                      {
-                        title: 'Pickup',
-                        description: delivery.pickupPoint,
-                      },
-                      {
-                        title: 'Destination',
-                        description: delivery.destination,
-                      }
-                    ]}
-                  />
-                </div>
-                <Button
-                  type="primary"
-                  onClick={() => handleShowRoute(delivery)}
-                >
-                  Show Route
-                </Button>
-              </li>
-            ))}
-          </ul>
+          <>
+            <List
+                itemLayout="vertical"
+                dataSource={currentItems}
+                renderItem={delivery => (
+                    <List.Item key={delivery.uid}>
+                        <Card
+                            title={delivery.name}
+                            extra={
+                                <Button
+                                    type="primary"
+                                    onClick={() => handleShowRoute(delivery)}
+                                >
+                                    Show Route
+                                </Button>
+                            }
+                        >
+                            <Descriptions column={1} size="small">
+                                <Descriptions.Item label="Contact">{delivery.contact}</Descriptions.Item>
+                                <Descriptions.Item label="Status">{delivery.status}</Descriptions.Item>
+                                {delivery.truckNumberPlate && (
+                                    <Descriptions.Item label="Truck">{delivery.truckNumberPlate}</Descriptions.Item>
+                                )}
+                                <Descriptions.Item label="Pickup">{delivery.pickupPoint}</Descriptions.Item>
+                                <Descriptions.Item label="Destination">{delivery.destination}</Descriptions.Item>
+                            </Descriptions>
+                        </Card>
+                    </List.Item>
+                )}
+            />
+            <Pagination
+                current={currentPage}
+                pageSize={itemsPerPage}
+                total={allRoutesData.length}
+                onChange={(page) => setCurrentPage(page)}
+                showSizeChanger={false}
+                style={{ textAlign: 'center', marginTop: '20px' }}
+            />
+          </>
         )}
       </div>
       <div className="maps-dd">
