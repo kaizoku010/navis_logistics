@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Layout, Row, Col, List, Card, Button, Spin, message } from 'antd';
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
-import Modal from 'react-modal';
 import { GoogleMap, Marker, DirectionsService, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import { Modal as AntdModal } from 'antd'; // Import Ant Design Modal and alias it
 import './deliver.css';
-
-Modal.setAppElement('#root');
 
 const containerStyle = {
   width: '100%',
@@ -25,7 +24,6 @@ function Deliveries() {
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  const [notification, setNotification] = useState('');
   
   useEffect(() => {
     if (!authLoading && user?.company) {
@@ -37,14 +35,13 @@ function Deliveries() {
     if (!user || !user.company || !deliveries) {
       return []; // Return empty array if user or deliveries are not ready
     }
-    return deliveries.filter(req => req.company === user.company && req?.status === "pending");
+    return deliveries.filter(req => req?.status === "pending");
   }, [deliveries, user]);
 
   const handleAcceptDelivery = async () => {
     if (selectedDelivery) {
       await updateDeliveryStatusForDeliveryCollectionInAPI(selectedDelivery.uid, "accepted");
-      setNotification('Delivery accepted successfully!');
-      setTimeout(() => setNotification(''), 3000); // Clear the notification after 3 seconds
+      message.success('Delivery accepted successfully!'); // Use Ant Design message
       closeModal();
       await fetchDeliveriesFromAPI();
     }
@@ -94,40 +91,60 @@ function Deliveries() {
   };
 
   return (
-    <div className='deliveries-container'>
-      <div className='deliveries_list'>
-        <h1 className='del-title'>Deliveries</h1>
-        {notification && <p className='notification'>{notification}</p>}
-        {filteredDeliveries?.length === 0 ? (
-          <p className='non-dels'>No deliveries found</p>
-        ) : (
-          <ul>
-            {filteredDeliveries?.map((delivery) => (
-              <li className='delivery-item' key={delivery.id} onClick={() => handleDeliveryClick(delivery)}>
-                <h2>{delivery.name}</h2>
-                <p>Contact: {delivery.contact}</p>
-                <p>Pickup Point: {delivery.pickupPoint}</p>
-                <p>Destination: {delivery.destination}</p>
-                <p>Car Requested: {delivery.plateNumber}</p>
-                <p>Weight: {delivery.weight}</p>
-                <p>Status: {delivery.status}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <Layout  style={{ padding: '24px', minHeight: '100vh' }}>
+      <Row  gutter={[16, 16]}>
+        <div className='deliveries-list' span={12}> {/* This column will contain the deliveries list */}
+          <Card  title="Deliveries" style={{ marginBottom: 16 }}>
+            {filteredDeliveries?.length === 0 ? (
+              <p className='non-dels'>No deliveries found</p>
+            ) : (
+              <List
+                itemLayout="vertical"
+                size="large"
+                dataSource={filteredDeliveries}
+                renderItem={delivery => (
+                  <List.Item
+                    key={delivery.id}
+                    onClick={() => handleDeliveryClick(delivery)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <List.Item.Meta
+                      title={<a>{delivery.name}</a>}
+                      description={`Contact: ${delivery.contact}`}
+                    />
+                    <p>Pickup Point: {delivery.pickupPoint}</p>
+                    <p>Destination: {delivery.destination}</p>
+                    <p>Car Requested: {delivery.plateNumber}</p>
+                    <p>Weight: {delivery.weight}</p>
+                    <p>Status: {delivery.status}</p>
+                  </List.Item>
+                )}
+              />
+            )}
+          </Card>
+        </div>
+        <Col span={12}> {/* This column will contain the modal content */}
+          {/* The Modal will be rendered here, but outside the Col for now, then moved inside Antd Modal */}
+        </Col>
+      </Row>
 
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Delivery Map"
-        className="modal"
-        overlayClassName="overlay"
+      <AntdModal
+        title="Delivery Map"
+        open={modalIsOpen}
+        onCancel={closeModal}
+        footer={[
+          <Button key="close" onClick={closeModal}>
+            Close
+          </Button>,
+          <Button key="accept" type="primary" onClick={handleAcceptDelivery}>
+            Accept Delivery
+          </Button>,
+        ]}
+        width={800}
       >
-        <div className='del-map'>
+        <div style={{ height: '60vh', width: '100%' }}>
           {selectedDelivery && isLoaded && (
             <GoogleMap
-              className="map22"
               mapContainerStyle={containerStyle}
               zoom={16}
               center={selectedDelivery.pickupCoords}
@@ -149,13 +166,9 @@ function Deliveries() {
               )}
             </GoogleMap>
           )}
-          <div className='actions'>
-            <button className='ac-d2' onClick={handleAcceptDelivery}>Accept Delivery</button>
-            <button onClick={closeModal} className="ac-d">Close</button>
-          </div>
         </div>
-      </Modal>
-    </div>
+      </AntdModal>
+    </Layout>
   );
 }
 

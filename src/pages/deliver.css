@@ -33,6 +33,10 @@ list-style: none;
     margin-bottom: 1%;
 }
 
+.deliveries-list{
+    width: 100% !important;
+    /* background-color: red; */
+}
 
 
 .delivery-item:hover{
