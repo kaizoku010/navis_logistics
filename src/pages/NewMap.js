@@ -57,7 +57,7 @@ function NewMap({ allRoutes, selectedRoute }) {
     <div className='map_area'>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={selectedRoute?.pickupCoords || allRoutes[0]?.pickupCoords || { lat: -34.397, lng: 150.644 }} // Center based on selected or first route
+        center={selectedRoute?.pickupCoords || allRoutes[0]?.pickupCoords || { lat: 1.373333, lng: 32.290275 }} // Center based on selected or first route, default to Uganda
         zoom={10}
         options={mapOptions}
         onLoad={(map) => (mapRef.current = map)}

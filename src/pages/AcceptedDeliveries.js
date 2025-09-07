@@ -101,18 +101,33 @@ const AcceptedDeliveries = () => {
         {/* Pass allRoutesData to NewMap. NewMap will handle plotting multiple routes */}
         {allRoutesData.length > 0 ? (
           <NewMap
-            allRoutes={allRoutesData.map(route => ({
-              pickupCoords: { lat: Number(route.pickupCoords.lat.N), lng: Number(route.pickupCoords.lng.N) },
-              destinationCoords: { lat: Number(route.destinationCoords.lat.N), lng: Number(route.destinationCoords.lng.N) },
-              // Pass truckId for real-time tracking later
-              truckId: route.truckId,
-            }))}
+            allRoutes={allRoutesData.map(route => {
+              const defaultCoords = { lat: 0, lng: 0 }; // A safe default
+              const pickupLat = Number(route.pickupCoords?.lat?.N || route.pickupCoords?.lat);
+              const pickupLng = Number(route.pickupCoords?.lng?.N || route.pickupCoords?.lng);
+              const destinationLat = Number(route.destinationCoords?.lat?.N || route.destinationCoords?.lat);
+              const destinationLng = Number(route.destinationCoords?.lng?.N || route.destinationCoords?.lng);
+
+              return {
+                pickupCoords: (isNaN(pickupLat) || isNaN(pickupLng)) ? defaultCoords : { lat: pickupLat, lng: pickupLng },
+                destinationCoords: (isNaN(destinationLat) || isNaN(destinationLng)) ? defaultCoords : { lat: destinationLat, lng: destinationLng },
+                truckId: route.truckId,
+              };
+            })}
             // If a specific delivery is selected from the list, show its route highlighted
-            selectedRoute={selectedDelivery ? {
-              pickupCoords: { lat: Number(selectedDelivery.pickupCoords.lat.N), lng: Number(selectedDelivery.pickupCoords.lng.N) },
-              destinationCoords: { lat: Number(selectedDelivery.destinationCoords.lat.N), lng: Number(selectedDelivery.destinationCoords.lng.N) },
-              truckId: selectedDelivery.truckId,
-            } : null}
+            selectedRoute={selectedDelivery ? (() => {
+              const defaultCoords = { lat: 0, lng: 0 };
+              const pickupLat = Number(selectedDelivery.pickupCoords?.lat?.N);
+              const pickupLng = Number(selectedDelivery.pickupCoords?.lng?.N);
+              const destinationLat = Number(selectedDelivery.destinationCoords?.lat?.N);
+              const destinationLng = Number(selectedDelivery.destinationCoords?.lng?.N);
+
+              return {
+                pickupCoords: (isNaN(pickupLat) || isNaN(pickupLng)) ? defaultCoords : { lat: pickupLat, lng: pickupLng },
+                destinationCoords: (isNaN(destinationLat) || isNaN(destinationLng)) ? defaultCoords : { lat: destinationLat, lng: destinationLng },
+                truckId: selectedDelivery.truckId,
+              };
+            })() : null}
           />
         ) : (
           !loading && <div className='no-data'><p className='select-delivery-text'>No pending/active deliveries to show on map.</p></div>
