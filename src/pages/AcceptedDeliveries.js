@@ -18,15 +18,15 @@ const AcceptedDeliveries = () => {
     fetchAssignmentsFromAPI();
   }, []);
 
+  // console.log("user's company: ", typeof(user?.company))
+  console.log("user's company: ",user?.company)
+
   // Filter and prepare all routes data
   useEffect(() => {
     if (!loading && deliveries.length > 0 && trucks.length > 0 && assignments.length > 0) {
       const filteredDeliveries = deliveries.filter(
         (delivery) =>
-          delivery.company === user.company &&
-          (delivery.status === "pending" ||
-            delivery.status === "assigned" ||
-            delivery.status === "in_transit")
+          delivery.acceptedBy === user.company
       );
 
       const routes = filteredDeliveries.map((delivery) => {

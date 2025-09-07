@@ -106,6 +106,7 @@ export const DatabaseProvider = ({ children }) => {
         try {
             const result = await firebaseClient.getFromFirestore('deliveries');
             if (Array.isArray(result)) {
+                // console.log("found delivereis: ", result)
                 setDeliveries(result);
             } else {
                 console.error("fetchDeliveriesFromAPI: result is not an array", result);
