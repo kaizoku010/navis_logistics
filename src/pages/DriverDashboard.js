@@ -90,8 +90,14 @@ function DriverDashboard() {
 
   const mapRoutes = currentDelivery ? [{
     uid: currentDelivery.uid,
-    pickupCoords: { lat: Number(currentDelivery.pickupCoords.lat.N), lng: Number(currentDelivery.pickupCoords.lng.N) },
-    destinationCoords: { lat: Number(currentDelivery.destinationCoords.lat.N), lng: Number(currentDelivery.destinationCoords.lng.N) },
+    pickupCoords: {
+      lat: Number(currentDelivery.pickupCoords.lat?.N || currentDelivery.pickupCoords.lat),
+      lng: Number(currentDelivery.pickupCoords.lng?.N || currentDelivery.pickupCoords.lng)
+    },
+    destinationCoords: {
+      lat: Number(currentDelivery.destinationCoords.lat?.N || currentDelivery.destinationCoords.lat),
+      lng: Number(currentDelivery.destinationCoords.lng?.N || currentDelivery.destinationCoords.lng)
+    },
     truckId: currentTruck ? currentTruck.uid : null,
   }] : [];
 
