@@ -1,16 +1,26 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useDriverAuth } from '../contexts/DriverAuthContext'; // Import the driver auth hook
 import "./root.css"
 import { useNavigate } from "react-router-dom";
 
 export default function Root() {
   const { user, logout } = useAuth();
+  const { driver, driverLogout } = useDriverAuth(); // Get driver state and logout function
   const navigate = useNavigate();
+
+  // Determine the current user, whether it's a regular user or a driver
+  const currentUser = user || driver;
 
   const handleLogout = async () => {
     try {
-      await logout();
+      if (user) {
+        await logout(); // Regular user logout
+      }
+      if (driver) {
+        driverLogout(); // Driver logout
+      }
       navigate("/login");
     } catch (error) {
       console.error("Failed to log out", error);
@@ -39,26 +49,24 @@ export default function Root() {
         </div>
         <nav>
           <ul>
-            {(user?.accountType === 'root') && (
+            {/* Use currentUser to check accountType */}
+            {(currentUser?.accountType === 'root') && (
               <>
                 <li>
                   <Link to="/root/dashboard">Overview</Link>
                 </li>
-
               </>
             )}
 
-            {(user?.accountType === 'cargo-mover') && (
+            {(currentUser?.accountType === 'cargo-mover') && (
               <>
                 <li>
                   <Link to="/root/cargo-mover">Overview</Link>
                 </li>
-
               </>
             )}
 
-
-            {(user?.accountType === 'cargo-mover' || user?.accountType === 'root') && (
+            {(currentUser?.accountType === 'cargo-mover' || currentUser?.accountType === 'root') && (
               <>
                 <li>
                   <Link to="shipments">Shipments</Link>
@@ -69,7 +77,7 @@ export default function Root() {
               </>
             )}
 
-            {(user?.accountType === 'track-owner' || user?.accountType === 'root') && (
+            {(currentUser?.accountType === 'track-owner' || currentUser?.accountType === 'root') && (
               <>
                 <li>
                   <Link to="/root/trucker">Overview</Link>
@@ -83,37 +91,35 @@ export default function Root() {
                 <li>
                   <Link to="requests">Pending Deliveries </Link>
                 </li>
-
                 <li>
                   <Link to="enroute">Deliveries Completed</Link>
                 </li>
-
               </>
-
             )}
-            {(user?.accountType === 'track-owner' || user?.accountType === 'cargo-mover') && (
+
+            {(currentUser?.accountType === 'root' || currentUser?.accountType === 'cargo-mover') && (
               <li>
                 <Link to="map">Navis Map</Link>
               </li>
             )}
 
-              {(user?.accountType === 'driver' || user?.accountType === 'root') && (
-              <li>
+            {(currentUser?.accountType === 'driver' || currentUser?.accountType === 'root') && (
+              <>
+                <li>
                 <Link to="/root/driver">Home</Link>
-              </li>
+                </li>
+                <li>
+                <Link to="/root/driver/profile">Account</Link>
+                </li>
+              </>
             )}
 
-              {(user?.accountType === 'driver' || user?.accountType === 'root') && (
+            {/* This will now appear for any logged-in user */}
+            {currentUser && (
               <li>
-                <Link to="/root/profile">Driver Account</Link>
+                <Link onClick={handleLogout}>Logout</Link>
               </li>
             )}
-
-
-
-            <li>
-              <Link onClick={handleLogout}>Logout</Link>
-            </li>
           </ul>
         </nav>
       </div>

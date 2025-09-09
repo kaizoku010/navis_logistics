@@ -205,8 +205,7 @@ const router = createBrowserRouter([
         path: "/root/map",
         element: (
           <ProtectedRoute
-            allowedRoles={["track-owner", "cargo-mover", "driver"]}
-          >
+            allowedRoles={["cargo-mover"]} >
             <AcceptedDeliveries />
           </ProtectedRoute>
         ),

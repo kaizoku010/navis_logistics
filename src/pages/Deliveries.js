@@ -65,6 +65,8 @@ function Deliveries() {
       );
     }
 
+    console.log("deliveries: ", fetchDeliveriesFromAPI);
+
     if (filteredStatus) {
         data = data.filter(delivery => delivery.status === filteredStatus);
     }

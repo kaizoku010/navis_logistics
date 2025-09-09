@@ -1,55 +1,68 @@
 // src/pages/Dashboard.js
-import React from 'react';
+import React, { useEffect } from 'react';
 import "./Dashboard.css"
 import GuyBanner from '../components/GuyBanner';
 import IconBox from '../components/IconBox';
 import Graph from '../components/Graph';
 import Search from '../components/Search';
-import pp from "../assets/pp.jpg"
+// import pp from "../assets/pp.jpg"
 import { useAuth } from '../contexts/AuthContext';
 import { useDatabase } from '../contexts/DatabaseContext';
-import OrderStats from '../components/OrderStats';
-import IncomeStats from '../components/IncomeStats';
-import Transactions from '../components/Transactions';
+// import OrderStats from '../components/OrderStats';
+// import IncomeStats from '../components/IncomeStats';
+// import Transactions from '../components/Transactions';
 import DriverIc from "../assets/drv.png"
 import Trucks from  "../assets/vv.png"
 
 function TruckOwnerDash() {
   const { user } = useAuth();
-  const { trucks, drivers, nonUserDeliveries } = useDatabase();
+  const { trucks, drivers, nonUserDeliveries, deliveries, fetchDeliveriesFromAPI } = useDatabase();
 
   const getSortedDeliveriesByCompany = () => {
-    if (!nonUserDeliveries || !user) return [];
+    if (!nonUserDeliveries || !user?.company) return [];
     return nonUserDeliveries
-      .filter(delivery => delivery.company === user.company && delivery.status ==="accepted" )
-      .sort((a, b) => a.company.localeCompare(b.company)); // Sort by company name if needed
+      .filter(delivery => 
+        delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() && 
+        (delivery.status === "accepted" || delivery.status === "active")
+      )
+      .sort((a, b) => a.company.localeCompare(b.company));
   };
-
-
 
   const completedDeliveriesByCompany = () => {
-    if (!nonUserDeliveries || !user) return [];
+    if (!nonUserDeliveries || !user?.company) return [];
     return nonUserDeliveries
-      .filter(delivery => delivery.company === user.company && delivery.status ==="completed" )
-      .sort((a, b) => a.company.localeCompare(b.company)); // Sort by company name if needed
+      .filter(delivery => delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() && delivery.status ==="completed" )
+      .sort((a, b) => a.company.localeCompare(b.company));
   };
 
-
   const declinedDeliveriesByCompany = () => {
-    if (!nonUserDeliveries || !user) return [];
+    if (!nonUserDeliveries || !user?.company) return [];
     return nonUserDeliveries
-      .filter(delivery => delivery.company === user.company && delivery.status ==="declined" )
-      .sort((a, b) => a.company.localeCompare(b.company)); // Sort by company name if needed
+      .filter(delivery => delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() && delivery.status ==="declined" )
+      .sort((a, b) => a.company.localeCompare(b.company));
   };
 
   const pendingDeliveriesCompany = () => {
-    if (!nonUserDeliveries || !user) return [];
-    return nonUserDeliveries
-      .filter(delivery => delivery.company === user.company && delivery.status ==="pennding" ) || 0
+    if (!nonUserDeliveries || !user?.company) return [];
+    // Pending deliveries might not have an 'acceptedBy' field yet, so we check the creator's company
+    return deliveries
+      .filter(delivery => delivery.status ==="pending" ) || 0
   };
 
-  console.log("number of request: ", pendingDeliveriesCompany().length)
-  // console.log("number of drivers: ", drivers.length)
+    const pendingNonDeliveriesCompany = () => {
+    if (!nonUserDeliveries || !user?.company) return [];
+    // Pending deliveries might not have an 'acceptedBy' field yet, so we check the creator's company
+    return deliveries
+      .filter(delivery => delivery.company?.toLowerCase() === user.company.toLowerCase() && delivery.status ==="pending" ) || 0
+  };
+
+
+useEffect(() => {
+  fetchDeliveriesFromAPI();
+}, [fetchDeliveriesFromAPI]);
+
+   console.log("TEST ", pendingDeliveriesCompany().length) 
+   console.log("number of accepted requests: ", getSortedDeliveriesByCompany().length)
 
 
 return <div className='dash-des'>
@@ -89,7 +102,7 @@ return <div className='dash-des'>
   number={completedDeliveriesByCompany().length} title={"Completed Deliveries"} />
   <IconBox
   iconClass="fi fi-sr-vote-nay"
-  number={declinedDeliveriesByCompany().length} title={"Deliveries Declined"}/>
+  number={declinedDeliveriesByCompany().length} title={"Active Deliveries"}/>
 </div>
 <IconBox
 iconClass="i fi-ss-driver-man"

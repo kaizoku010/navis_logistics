@@ -87,6 +87,19 @@ a{
 
 }
 
+.c_userName {
+    margin-bottom: 0px;
+    font-weight: 500;
+    font-size: small;
+}
+
+
+
+.c_userComp {
+    font-size: .8rem;
+    opacity: 0.5;
+    color: #000000;
+}
 
 .whiteMe {
     margin-bottom: 0px !important;
