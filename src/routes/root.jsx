@@ -8,14 +8,14 @@ export default function Root() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-const handleLogout = async () => {
-  try {
-    await logout();
-    navigate("/login");
-  } catch (error) {
-    console.error("Failed to log out", error);
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Failed to log out", error);
+    }
+  };
 
   return (
     <>
@@ -39,25 +39,25 @@ const handleLogout = async () => {
         </div>
         <nav>
           <ul>
-          {(user?.accountType === 'root') && (
+            {(user?.accountType === 'root') && (
               <>
-                  <li>
-              <Link to="/root/dashboard">Overview</Link>
-            </li>
-             
+                <li>
+                  <Link to="/root/dashboard">Overview</Link>
+                </li>
+
               </>
             )}
 
-         {(user?.accountType === 'cargo-mover') && (
+            {(user?.accountType === 'cargo-mover') && (
               <>
-                  <li>
-              <Link to="/root/cargo-mover">Overview</Link>
-            </li>
-             
+                <li>
+                  <Link to="/root/cargo-mover">Overview</Link>
+                </li>
+
               </>
             )}
-       
-           
+
+
             {(user?.accountType === 'cargo-mover' || user?.accountType === 'root') && (
               <>
                 <li>
@@ -68,32 +68,48 @@ const handleLogout = async () => {
                 </li>
               </>
             )}
-            
+
             {(user?.accountType === 'track-owner' || user?.accountType === 'root') && (
               <>
-                  <li>
-              <Link to="/root/trucker">Overview</Link>
-            </li>
+                <li>
+                  <Link to="/root/trucker">Overview</Link>
+                </li>
                 <li>
                   <Link to="drivers">Drivers</Link>
                 </li>
                 <li>
-                <Link to="truck-management">Fleet</Link>
+                  <Link to="truck-management">Fleet</Link>
                 </li>
                 <li>
-              <Link to="requests">Pending Deliveries </Link>
-            </li>
-           
-            <li>
-              <Link to="enroute">Deliveries Completed</Link>
-            </li>
-         
+                  <Link to="requests">Pending Deliveries </Link>
+                </li>
+
+                <li>
+                  <Link to="enroute">Deliveries Completed</Link>
+                </li>
+
               </>
-              
+
             )}
-             <li>
-              <Link to="map">Navis Map</Link>
-            </li>
+            {(user?.accountType === 'track-owner' || user?.accountType === 'cargo-mover') && (
+              <li>
+                <Link to="map">Navis Map</Link>
+              </li>
+            )}
+
+              {(user?.accountType === 'driver' || user?.accountType === 'root') && (
+              <li>
+                <Link to="/root/driver">Home</Link>
+              </li>
+            )}
+
+              {(user?.accountType === 'driver' || user?.accountType === 'root') && (
+              <li>
+                <Link to="/root/profile">Driver Account</Link>
+              </li>
+            )}
+
+
 
             <li>
               <Link onClick={handleLogout}>Logout</Link>

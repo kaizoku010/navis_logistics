@@ -4,7 +4,7 @@ import { Tooltip } from '@mui/material'; // Import Tooltip
 import { useDatabase } from '../contexts/DatabaseContext'; // Import useDatabase
 import './maps.css';
 
-function NewMap({ allRoutes, selectedRoute }) {
+function NewMap({ allRoutes, selectedRoute, driverCurrentLocation }) {
   const { trucks } = useDatabase(); // Fetch trucks data
   const [directionsResponses, setDirectionsResponses] = useState({}); // Store responses for multiple routes
   const mapRef = useRef(null);
@@ -23,12 +23,12 @@ function NewMap({ allRoutes, selectedRoute }) {
       let hasBounds = false;
 
       if (selectedRoute) {
-        bounds.extend(selectedRoute.pickupCoords);
+        bounds.extend(selectedRoute.originCoords);
         bounds.extend(selectedRoute.destinationCoords);
         hasBounds = true;
       } else if (allRoutes.length > 0) {
         allRoutes.forEach(route => {
-          bounds.extend(route.pickupCoords);
+          bounds.extend(route.originCoords);
           bounds.extend(route.destinationCoords);
         });
         hasBounds = true;
@@ -46,18 +46,18 @@ function NewMap({ allRoutes, selectedRoute }) {
   };
 
   const mapOptions = {
-    gestureHandling: 'none',
+    gestureHandling: 'auto', // Allow gestures
     draggable: true,
-    zoomControl: false,
-    scrollwheel: false,
-    disableDefaultUI: true,
+    zoomControl: true, // Enable zoom control
+    scrollwheel: true, // Enable scrollwheel zoom
+    disableDefaultUI: false, // Enable default UI (including directions panel if available)
   };
 
   return (
     <div className='map_area'>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={selectedRoute?.pickupCoords || allRoutes[0]?.pickupCoords || { lat: 1.373333, lng: 32.290275 }} // Center based on selected or first route, default to Uganda
+        center={selectedRoute?.originCoords || allRoutes[0]?.originCoords || { lat: 1.373333, lng: 32.290275 }} // Center based on selected or first route, default to Uganda
         zoom={10}
         options={mapOptions}
         onLoad={(map) => (mapRef.current = map)}
@@ -65,7 +65,7 @@ function NewMap({ allRoutes, selectedRoute }) {
         {/* Render markers for selected route or all routes */}
         {selectedRoute ? (
           <>
-            <Marker position={selectedRoute.pickupCoords} />
+            <Marker position={selectedRoute.originCoords} />
             <Marker position={selectedRoute.destinationCoords} />
           </>
         ) : (
@@ -82,7 +82,7 @@ function NewMap({ allRoutes, selectedRoute }) {
           <DirectionsService
             key={`${route.uid}-${index}`}
             options={{
-              origin: route.pickupCoords,
+              origin: route.originCoords,
               destination: route.destinationCoords,
               travelMode: 'DRIVING',
             }}
@@ -127,6 +127,25 @@ function NewMap({ allRoutes, selectedRoute }) {
           }
           return null;
         })}
+
+        {/* Render Driver's Current Location Marker */}
+        {driverCurrentLocation && (
+          <Marker
+            position={driverCurrentLocation}
+            icon={driverCurrentLocation.imageUrl ? {
+              url: driverCurrentLocation.imageUrl,
+              scaledSize: new window.google.maps.Size(40, 40), // Adjust size as needed
+              anchor: new window.google.maps.Point(20, 20) // Center the icon
+            } : {
+              url: "https://maps.google.com/mapfiles/ms/icons/man.png", // Generic person icon
+              scaledSize: new window.google.maps.Size(32, 32),
+            }}
+          >
+            <Tooltip title="Driver's Current Location" arrow>
+              <div />
+            </Tooltip>
+          </Marker>
+        )}
       </GoogleMap>
     </div>
   );

@@ -87,6 +87,11 @@ a{
 
 }
 
+
+.whiteMe {
+    margin-bottom: 0px !important;
+}
+
 .addDriver-btn:hover{
   background-color: white !important;
   color: #ce06a3;

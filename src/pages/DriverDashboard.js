@@ -3,7 +3,7 @@ import { useDriverAuth } from '../contexts/DriverAuthContext'; // Use useDriverA
 import { useDatabase } from '../contexts/DatabaseContext';
 import NewMap from './NewMap'; // Reusing the NewMap component
 import { useNavigate } from 'react-router-dom'; // Added
-import { Card, Descriptions, List, Empty, Button } from 'antd';
+import { Card, Descriptions, List, Empty, Button, message } from 'antd';
 import './driverDashboard.css'; // Assuming a new CSS file for styling
 
 function DriverDashboard() {
@@ -14,6 +14,8 @@ function DriverDashboard() {
   const [currentDelivery, setCurrentDelivery] = useState(null);
   const [currentTruck, setCurrentTruck] = useState(null);
   const [isTrackingLocation, setIsTrackingLocation] = useState(false);
+  const [startTime, setStartTime] = useState(null); // New state for start time
+  const [elapsedTime, setElapsedTime] = useState(0); // New state for elapsed time in seconds
 
   useEffect(() => {
     fetchDeliveriesFromAPI();
@@ -49,7 +51,7 @@ function DriverDashboard() {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
-            updateDriverLocationInAPI(driver.uid, latitude, longitude, 'in_transit');
+            updateDriverLocationInAPI(driver.id, latitude, longitude, 'in_transit');
           },
           (error) => {
             console.error("Error getting location:", error);
@@ -69,31 +71,93 @@ function DriverDashboard() {
   }, [isTrackingLocation, driver?.uid, updateDriverLocationInAPI]);
 
   const handleStartDelivery = async () => {
-    if (!currentDelivery || !driver?.uid) {
-      alert("No current delivery or driver ID available.");
+    if (!currentDelivery || !driver?.id) {
+      message.error("No current delivery or driver ID available.");
       return;
     }
-    setIsTrackingLocation(true);
-    await updateDeliveryStatusForDeliveryCollectionInAPI(currentDelivery.uid, 'in_transit');
-    alert("Delivery started! Tracking location...");
+
+    // Get current location immediately
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        // Update driver's location in Firebase immediately
+        await updateDriverLocationInAPI(driver.id, latitude, longitude, 'in_transit');
+
+        // Set tracking state and start time
+        setIsTrackingLocation(true);
+        const now = Date.now();
+        setStartTime(now);
+
+        // Update delivery status and start time in Firebase
+        await updateDeliveryStatusForDeliveryCollectionInAPI(
+          currentDelivery.id,
+          'in_transit',
+          currentDelivery.acceptedBy,
+          currentDelivery.truckId,
+          driver.id,
+          now
+        );
+        message.success("Delivery started! Tracking location...");
+      },
+      (error) => {
+        console.error("Error getting initial location:", error);
+        message.error("Could not get current location. Please ensure location services are enabled.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Request fresh, high-accuracy location
+    );
   };
 
+  useEffect(() => {
+    let timerInterval;
+    if (isTrackingLocation && startTime) {
+      timerInterval = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startTime) / 1000)); // Update every second
+      }, 1000);
+    } else {
+      setElapsedTime(0); // Reset if not tracking or no start time
+    }
+
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [isTrackingLocation, startTime]);
+
   const handleStopDelivery = async () => {
-    if (!currentDelivery || !driver?.uid) {
-      alert("No current delivery or driver ID available.");
+    if (!currentDelivery || !driver?.id) {
+      message.error("No current delivery or driver ID available.");
       return;
     }
     setIsTrackingLocation(false);
-    await updateDeliveryStatusForDeliveryCollectionInAPI(currentDelivery.uid, 'delivered');
-    alert("Delivery stopped. Location tracking paused.");
+    const now = Date.now(); // Get current timestamp as end time
+    const duration = Math.floor((now - startTime) / 1000); // Calculate total duration in seconds
+
+    await updateDeliveryStatusForDeliveryCollectionInAPI(
+      currentDelivery.id, // Use currentDelivery.id
+      'delivered',
+      currentDelivery.acceptedBy,
+      currentDelivery.truckId,
+      driver.id,
+      startTime, // Pass start time
+      now,       // Pass end time
+      duration   // Pass total duration
+    );
+    setStartTime(null); // Reset start time
+    setElapsedTime(0); // Reset elapsed time
+    message.info("Delivery stopped. Location tracking paused.");
   };
 
   const mapRoutes = currentDelivery ? [{
     uid: currentDelivery.uid,
-    pickupCoords: {
-      lat: Number(currentDelivery.pickupCoords.lat?.N || currentDelivery.pickupCoords.lat),
-      lng: Number(currentDelivery.pickupCoords.lng?.N || currentDelivery.pickupCoords.lng)
-    },
+    // If tracking, origin is driver's current location, otherwise it's the delivery pickup
+    originCoords: isTrackingLocation && typeof driver?.currentLatitude === 'number' && typeof driver?.currentLongitude === 'number'
+      ? { lat: driver.currentLatitude, lng: driver.currentLongitude }
+      : {
+          lat: Number(currentDelivery.pickupCoords.lat?.N || currentDelivery.pickupCoords.lat),
+          lng: Number(currentDelivery.pickupCoords.lng?.N || currentDelivery.pickupCoords.lng)
+        },
     destinationCoords: {
       lat: Number(currentDelivery.destinationCoords.lat?.N || currentDelivery.destinationCoords.lat),
       lng: Number(currentDelivery.destinationCoords.lng?.N || currentDelivery.destinationCoords.lng)
@@ -103,10 +167,14 @@ function DriverDashboard() {
 
   return (
     <div className="driver-dashboard">
-      <h1>Driver Dashboard</h1>
+      {/* <h1>Driver Dashboard</h1> */}
       <div className="dashboard-content">
         <div className="map-section">
-          <NewMap allRoutes={mapRoutes} selectedRoute={mapRoutes.length > 0 ? mapRoutes[0] : null} />
+          <NewMap
+            allRoutes={mapRoutes}
+            selectedRoute={mapRoutes.length > 0 ? mapRoutes[0] : null}
+            driverCurrentLocation={driver?.currentLatitude && driver?.currentLongitude ? { lat: driver.currentLatitude, lng: driver.currentLongitude, imageUrl: driver.imageUrl } : null}
+          />
           {mapRoutes.length === 0 && (
             <div className="map-overlay-text">
               <p>No active delivery route to display.</p>
@@ -122,9 +190,13 @@ function DriverDashboard() {
                   <Descriptions.Item label="Status">{currentDelivery.status}</Descriptions.Item>
                   <Descriptions.Item label="From">{currentDelivery.pickupPoint}</Descriptions.Item>
                   <Descriptions.Item label="To">{currentDelivery.destination}</Descriptions.Item>
-                  {currentTruck && (
-                    <Descriptions.Item label="Assigned Truck">{currentTruck.numberPlate} ({currentTruck.type})</Descriptions.Item>
-                  )}
+                  {/* Always render Descriptions.Item, conditionally render its content */}
+                  <Descriptions.Item label="Assigned Truck">
+                    {currentTruck ? `${currentTruck.numberPlate} (${currentTruck.type})` : 'N/A'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Elapsed Time">
+                    {new Date(elapsedTime * 1000).toISOString().substr(11, 8)}
+                  </Descriptions.Item>
                 </Descriptions>
                 <div style={{ marginTop: 16 }}>
                   <Button type="primary" onClick={handleStartDelivery} disabled={isTrackingLocation} style={{ marginRight: 8 }}>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from 'react-table';
+import { message } from 'antd'; // Added
 import './drivers.css';
 import Search from '../components/Search';
 
@@ -56,7 +57,7 @@ function Drivers() {
   const handleAddDriver = async (e) => {
     e.preventDefault();
     if (!driverName || !driverEmail || !driverPassword || !phoneNumber || !age || !permitId || !ninNumber) {
-      alert('Please provide all driver details, including email and password.');
+      message.error('Please provide all driver details, including email and password.');
       return;
     }
 
@@ -99,7 +100,7 @@ function Drivers() {
         imageUrl: imageUrl,
       });
 
-      alert('Driver added successfully!');
+      message.success('Driver added successfully!');
       fetchDriversFromAPI();
       setDriverName('');
       setDriverEmail('');
@@ -112,7 +113,7 @@ function Drivers() {
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error adding driver:', error);
-      alert(`Error adding driver: ${error.message}`);
+      message.error(`Error adding driver: ${error.message}`);
     } finally {
       setIsAddingDriver(false);
       setProgress(0);
@@ -136,7 +137,7 @@ function Drivers() {
       setIsConfirmModalOpen(false);
     } catch (error) {
       console.error('Error deleting driver:', error);
-      alert('Failed to delete driver.');
+      message.error('Failed to delete driver.');
     }
   };
 
@@ -169,7 +170,7 @@ function Drivers() {
         setNinNumber('');
     } catch (error) {
         console.error('Error updating driver:', error);
-        alert('Failed to update driver.');
+        message.error('Failed to update driver.');
     }
   };
 
@@ -193,19 +194,19 @@ function Drivers() {
 
   const handleAssignTruck = async () => {
     if (!selectedDriver || !selectedTruckId) {
-      alert('Please select a driver and a truck to assign.');
+      message.error('Please select a driver and a truck to assign.');
       return;
     }
 
     try {
       await updateDriver(selectedDriver.id, { currentTruckId: selectedTruckId });
-      alert('Truck assigned successfully!');
+      message.success('Truck assigned successfully!');
       fetchDriversFromAPI(); // Refresh the list
       setIsDetailModalOpen(false); // Close the modal
       setSelectedTruckId(''); // Clear selected truck
     } catch (error) {
       console.error('Error assigning truck:', error);
-      alert('Failed to assign truck.');
+      message.error('Failed to assign truck.');
     }
   };
 

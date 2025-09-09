@@ -101,21 +101,13 @@ export const DatabaseProvider = ({ children }) => {
         return result;
     }, []);
 
-    const fetchDeliveriesFromAPI = useCallback(async () => {
+    const fetchDeliveriesFromAPI = useCallback(() => {
         setDeliveriesLoading(true);
-        try {
-            const result = await firebaseClient.getFromFirestore('deliveries');
-            if (Array.isArray(result)) {
-                // console.log("found delivereis: ", result)
-                setDeliveries(result);
-            } else {
-                console.error("fetchDeliveriesFromAPI: result is not an array", result);
-            }
-        } catch (error) {
-            console.error("Error fetching deliveries:", error);
-        } finally {
+        const unsubscribe = firebaseClient.listenToCollection('deliveries', (data) => {
+            setDeliveries(data);
             setDeliveriesLoading(false);
-        }
+        });
+        return unsubscribe; // Return unsubscribe function
     }, []);
 
     const saveDeliveryToAPI = useCallback(async (deliveryData) => {
@@ -166,16 +158,44 @@ export const DatabaseProvider = ({ children }) => {
         return result;
     }, []);
 
-    const updateDeliveryStatusForDeliveryCollectionInAPI = useCallback(async (deliveryId, status, acceptedBy, truckId, driverId) => {
+    const updateDeliveryStatusForDeliveryCollectionInAPI = useCallback(async (deliveryId, status, acceptedBy, truckId, driverId, startTime = null, endTime = null, totalDuration = null) => {
         setLoading(true);
         const dataToUpdate = {
             status,
             acceptedBy,
             truckId,
-            driverId
+            driverId,
+            ...(startTime && { startTime }),
+            ...(endTime && { endTime }),
+            ...(totalDuration && { totalDuration }),
         };
 
         const result = await firebaseClient.updateInFirestore('deliveries', deliveryId, dataToUpdate);
+
+        // Update driver's currentTruckId and currentDeliveryId when delivery starts or is accepted
+        if (driverId && (status === 'in_transit' || status === 'accepted')) { // Assuming 'accepted' is also a state where truck is assigned
+            try {
+                await firebaseClient.updateInFirestore('drivers', driverId, {
+                    currentTruckId: truckId,
+                    currentDeliveryId: deliveryId,
+                    status: 'on_delivery' // Update driver status
+                });
+            } catch (error) {
+                console.error("Error updating driver's current truck/delivery ID:", error);
+            }
+        } else if (driverId && status === 'delivered') {
+            // When delivery is delivered, clear currentTruckId and currentDeliveryId from driver
+            try {
+                await firebaseClient.updateInFirestore('drivers', driverId, {
+                    currentTruckId: null,
+                    currentDeliveryId: null,
+                    status: 'available' // Update driver status
+                });
+            } catch (error) {
+                console.error("Error clearing driver's current truck/delivery ID:", error);
+            }
+        }
+
 
         // If delivery is marked as 'delivered', add it to driver's pastDeliveries
         if (status === 'delivered' && driverId) {
@@ -189,6 +209,7 @@ export const DatabaseProvider = ({ children }) => {
                         pickupPoint: deliveryDoc.pickupPoint,
                         destination: deliveryDoc.destination,
                         deliveryDate: new Date().toISOString(), // Store completion date
+                        totalDuration: totalDuration || null, // Include totalDuration
                         // Add other relevant fields for summary display
                     };
                     await firebaseClient.updateInFirestore('drivers', driverId, {

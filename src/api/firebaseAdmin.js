@@ -18,7 +18,8 @@ import {
     getDoc,
     updateDoc,
     deleteDoc,
-    onSnapshot
+    onSnapshot,
+    FieldValue // Added FieldValue
 } from 'firebase/firestore'; // Correct import path for Firestore functions
 
 // Firebase Client Functions (replacing Firebase Admin functionality)
@@ -69,15 +70,10 @@ export const firebaseClient = {
         const data = { id: docSnap.id, ...docSnap.data() };
         // console.log(`getFromFirestore: Document ${documentId} data:`, data);
         return data;
-      } else {
-        const querySnapshot = await getDocs(collection(firestore, collectionName));
-        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // console.log(`getFromFirestore: Successfully fetched ${data.length} documents from ${collectionName}:`, data);
-        return data;
       }
     } catch (error) {
       console.error(`getFromFirestore: Error fetching from Firestore collection ${collectionName}:`, error.message);
-      return { success: false, error: error.message };
+      throw error; // Throw the error
     }
   },
 
@@ -114,7 +110,10 @@ export const firebaseClient = {
       console.error(`Error listening to collection ${collectionName}:`, error.message);
     });
     return unsubscribe;
+  },
+  firestore: { // Expose firestore instance and FieldValue
+    FieldValue: FieldValue,
   }
-};
+};;
 
 export default firebaseClient;

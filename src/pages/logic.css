@@ -8,6 +8,12 @@ height: 100vh;
 background-image: url("../assets/bg.png");
 }
 
+
+.driver-login-link > a {
+    color: rgb(33 109 240);
+    font-weight: 500;
+}
+
 .driver-login-btn{
     width: 100% !important;
 }

@@ -117,6 +117,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      
       {
         path: "/root/enroute",
         element: (
@@ -159,6 +160,15 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+     {
+        path: "/root/cargo-mover",
+        element: (
+          <ProtectedRoute allowedRoles={["cargo-mover"]}>
+            <CargoMoverDash />
+          </ProtectedRoute>
+        ),
+      },
+
       {
         path: "/root/addTracks",
         element: (
@@ -213,6 +223,25 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+
+      // driver paths
+        {
+        path: "/root/driver",
+        element: (
+          <ProtectedRoute allowedRoles={["driver"]}>
+            <DriverDashboard />
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path:"/root/driver",
+        element:(
+          <ProtectedRoute allowedRoles={["driver"]}>
+            <DriverProfile />
+          </ProtectedRoute>
+        )
+      }
     ],
   },
 ]);
