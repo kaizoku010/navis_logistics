@@ -57,11 +57,17 @@ const navigation = useNavigate();
   
 
   const start = ()=>{
-navigation("/sales")
+navigation("/login")
   }
 
   const sales = ()=>{
-    navigation("/sales")
+    navigation("/start")
+      }
+  
+
+      
+  const createAccount = ()=>{
+    navigation("/regesiter")
       }
   
   useEffect(() => {
@@ -79,7 +85,7 @@ navigation("/sales")
           </p>
           <div className='btnArea'>
             <button onClick={start} className='newBtn resizebtn'>Deliver Items</button>
-            <button onClick={sales} className='newBtn resizebtn2 contact'>Track Owner</button>
+            <button onClick={sales} className='newBtn resizebtn2 contact'>Truck Owner</button>
           </div>
         </div>
         <div className='imageside'>
@@ -98,7 +104,7 @@ navigation("/sales")
   <h4 className='twg-title'>Delivery management software</h4>
   <h4 className='twg-subTitle'>for multi-driver teams</h4>
   <p className='twg-p'>Optimize routes instantly, handle delivery in real time, and boost your team’s productivity with a simple dispatcher dashboard and driver app.</p>
-  <button className='twg-btn'>Learn More</button>
+  <button onClick={createAccount} className='twg-btn'>Start here</button>
   </div>
 
 

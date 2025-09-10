@@ -47,8 +47,9 @@ function LoginDriver() {
     <div className='loginHolder'>
       <img className='navis-logo' src={Logo} alt="Logo" />
       <form className='navis-form' onSubmit={handleLogin}>
-        <h2>Driver Login</h2>
-        <input
+      <h2 style={{alignSelf: "anchor-center", marginBottom: "3rem", fontSize: "0.8rem"}}>Driver Login</h2>
+     
+  <input
           type="email"
           placeholder="Email"
           value={email}
@@ -62,15 +63,19 @@ function LoginDriver() {
           className='nav-input'
           onChange={(e) => setPassword(e.target.value)}
         />
+           
         {error && <p className="error-message">{error}</p>}
-        <div className='btns-login'>
-          <button className='driver-login-btn btn-login' type="submit" disabled={loading}>
+     
+          <div className='driver-btn-section'>
+     
+          <button style={{width:"fit-content"}} className='patricia driver-login-btn btn-login' type="submit" disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
-        </div>
-        <button className='back_btn' onClick={home} type="button">
+        <button className='back_btn patricia' onClick={home} type="button">
             Back
           </button>
+        </div>
+
       </form>
     </div>
   );

@@ -147,7 +147,7 @@ function RegCustomer() {
             </button>
           </div>
           <p className="termsConditions">
-            By signing up on Navis.com using social accounts or login/register form,
+            By signing up on Navi.com using social logins accounts or login/register form,
             you are agreeing to our Terms & Conditions and Privacy Policy
           </p>
         </form>

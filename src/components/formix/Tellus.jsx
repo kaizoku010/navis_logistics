@@ -78,13 +78,12 @@ const Details = () => {
                       const style = suggestion.active
                         ? { backgroundColor: '#fafafa', cursor: 'pointer' }
                         : { backgroundColor: '#ffffff', cursor: 'pointer' };
+                      const { key, ...restOfProps } = getSuggestionItemProps(suggestion, {
+                        className,
+                        style,
+                      });
                       return (
-                        <div
-                          {...getSuggestionItemProps(suggestion, {
-                            className,
-                            style
-                          })}
-                        >
+                        <div key={key} {...restOfProps}>
                           <span>{suggestion.description}</span>
                         </div>
                       );
@@ -124,13 +123,12 @@ const Details = () => {
                       const style = suggestion.active
                         ? { backgroundColor: '#fafafa', cursor: 'pointer' }
                         : { backgroundColor: '#ffffff', cursor: 'pointer' };
+                      const { key, ...restOfProps } = getSuggestionItemProps(suggestion, {
+                        className,
+                        style,
+                      });
                       return (
-                        <div
-                          {...getSuggestionItemProps(suggestion, {
-                            className,
-                            style
-                          })}
-                        >
+                        <div key={key} {...restOfProps}>
                           <span>{suggestion.description}</span>
                         </div>
                       );

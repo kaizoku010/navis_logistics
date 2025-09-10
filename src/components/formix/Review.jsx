@@ -266,7 +266,7 @@ useEffect(() => {
               <>
                 <div className="front-dets">
                   {/* <p className="est-time">Estimated Delivery Time: {calculateDeliveryTime(truckInfo)} hours</p> */}
-                  <h1 className="truck-info-front">Navis found you a truck</h1>
+                  <h1 className="truck-info-front">Navis truck found!</h1>
                   <p className="text-dets">Fuel Type: <span className="text-dets-span">{truckInfo.fuelType}</span></p>
                   <p className="text-dets">Make:<span className="text-dets-span">{truckInfo.make}</span></p>
                   <p className="text-dets">Mileage:<span className="text-dets-span">{truckInfo.mileage}</span></p>

@@ -9,10 +9,26 @@ background-image: url("../assets/bg.png");
 }
 
 
+.patricia{
+    align-self: center;
+    width: 30rem !important;
+    margin-top: 0rem !important;
+}
+
+
+.driver-btn-section{
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+
 .driver-login-link > a {
     color: rgb(33 109 240);
     font-weight: 500;
 }
+
+
 
 .driver-login-btn{
     width: 100% !important;
