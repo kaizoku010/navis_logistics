@@ -265,16 +265,16 @@ useEffect(() => {
             {truckInfo ? (
               <>
                 <div className="front-dets">
-                  <p className="est-time">Estimated Delivery Time: {calculateDeliveryTime(truckInfo)} hours</p>
-                  <h1 className="truck-info-front">Truck Information</h1>
-                  <p>Fuel Type: {truckInfo.fuelType}</p>
-                  <p>Make: {truckInfo.make}</p>
-                  <p>Mileage: {truckInfo.mileage}</p>
-                  <p>Type: {truckInfo.type}</p>
-                  <p>Car Load: {truckInfo.load}</p>
-                  <p>Speed: {truckInfo.speed}</p>
-                  <p>Year Of Manufacture: {truckInfo.yearOfManufacture}</p>
-                  <img className="front-page" src={truckInfo.imageUrl} alt="Truck" />
+                  {/* <p className="est-time">Estimated Delivery Time: {calculateDeliveryTime(truckInfo)} hours</p> */}
+                  <h1 className="truck-info-front">Navis found you a truck</h1>
+                  <p className="text-dets">Fuel Type-<span className="text-dets-span">{truckInfo.fuelType}</span></p>
+                  <p className="text-dets">Make:<span className="text-dets-span">{truckInfo.make}</span></p>
+                  <p className="text-dets">Mileage:<span className="text-dets-span">{truckInfo.mileage}</span></p>
+                  <p className="text-dets">Type:<span className="text-dets-span">{truckInfo.type}</span></p>
+                  <p className="text-dets">Car Load:<span className="text-dets-span">{truckInfo.load}</span></p>
+                  <p className="text-dets">Speed:<span className="text-dets-span">{truckInfo.speed} </span></p>
+                  <p className="text-dets">Year Of Manufacture: <span className="text-dets-span">{truckInfo.yearOfManufacture}</span></p>
+                  <img className="front-page" src={truckInfo.imageUrl} alt="navis trucks" />
                 </div>
               </>
             ) : (
