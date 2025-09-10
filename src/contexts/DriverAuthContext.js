@@ -22,7 +22,9 @@ export function DriverAuthProvider({ children }) {
               accountType: 'driver',
               ...driverDocSnap.data()
             };
-            setDriver(fetchedDriverData);
+            if (JSON.stringify(fetchedDriverData) !== JSON.stringify(driver)) {
+                setDriver(fetchedDriverData);
+            }
             localStorage.setItem('driverSession', JSON.stringify(fetchedDriverData));
           } else {
             console.warn("Driver document not found in Firestore.");

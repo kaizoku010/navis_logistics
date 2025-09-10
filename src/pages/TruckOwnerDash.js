@@ -18,15 +18,16 @@ function TruckOwnerDash() {
   const { user } = useAuth();
   const { trucks, drivers, nonUserDeliveries, deliveries, fetchDeliveriesFromAPI } = useDatabase();
 
-  const getSortedDeliveriesByCompany = () => {
-    if (!nonUserDeliveries || !user?.company) return [];
-    return nonUserDeliveries
-      .filter(delivery => 
-        delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() && 
-        (delivery.status === "accepted" || delivery.status === "active")
-      )
-      .sort((a, b) => a.company.localeCompare(b.company));
-  };
+const getSortedDeliveriesByCompany = () => {
+  if (!nonUserDeliveries || !user?.company) return [];
+  return deliveries
+    .filter(delivery => 
+      delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() && 
+      (delivery.status === "accepted" || delivery.status === "active")
+    )
+};
+
+  console.log("deliveries accepted: ", getSortedDeliveriesByCompany().length)
 
   const completedDeliveriesByCompany = () => {
     if (!nonUserDeliveries || !user?.company) return [];
@@ -61,8 +62,8 @@ useEffect(() => {
   fetchDeliveriesFromAPI();
 }, [fetchDeliveriesFromAPI]);
 
-   console.log("TEST ", pendingDeliveriesCompany().length) 
-   console.log("number of accepted requests: ", getSortedDeliveriesByCompany().length)
+  //  console.log("TEST ", pendingDeliveriesCompany().length) 
+  //  console.log("number of accepted requests: ", getSortedDeliveriesByCompany().length)
 
 
 return <div className='dash-des'>

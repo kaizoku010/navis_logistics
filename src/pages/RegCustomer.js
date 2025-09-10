@@ -14,7 +14,8 @@ function RegCustomer() {
   const [company, setCompany] = useState('');
   const [accountType, setAccountType] = useState('');
   const [imageFile, setImageFile] = useState(null);
-  const { loading, register } = useAuth();
+  const [isRegistering, setIsRegistering] = useState(false); // Local loading state
+  const { register } = useAuth(); // Removed 'loading' from here
   const navigate = useNavigate();
 
   const handleImageUpload = async (file) => {
@@ -35,6 +36,7 @@ function RegCustomer() {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsRegistering(true); // Set local loading state to true
     if (imageFile || email) {
       try {
         const imageUrl = imageFile ? await handleImageUpload(imageFile) : "";
@@ -59,12 +61,15 @@ function RegCustomer() {
           title: 'Registration Failed',
           content: error.message,
         });
+      } finally {
+        setIsRegistering(false); // Reset local loading state
       }
     } else {
       Modal.error({
         title: 'Input Error',
         content: 'Please check your inputs and try again.',
       });
+      setIsRegistering(false); // Reset local loading state even if input is invalid
     }
   };
 
@@ -77,7 +82,7 @@ function RegCustomer() {
     <div className="regHolder">
       <div className="loginHolder2">
         <img className="navis-logo2" src={Logo} alt="Logo"/>
-        {loading && (
+        {isRegistering && (
             <div className="loading">
               <div className="loading-bar">
                 <div className="loading-bar-fill"></div>
@@ -129,14 +134,14 @@ function RegCustomer() {
             onChange={(e) => setImageFile(e.target.files[0])}
           />
           <div className="btns-login2">
-            <button className="btn-login2 regBtn" type="submit" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Create Account'}
+            <button className="btn-login2 regBtn" type="submit" disabled={isRegistering}>
+              {isRegistering ? 'Creating Account... ⏳' : 'Create Account'}
             </button>
             <button
               className="btn-regesiter2"
               onClick={handleBackNavigation}
               type="button"
-              disabled={loading}
+              disabled={isRegistering}
             >
               Back
             </button>

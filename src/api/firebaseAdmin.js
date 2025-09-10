@@ -60,15 +60,16 @@ export const firebaseClient = {
 
   getFromFirestore: async (collectionName, documentId = null) => {
     try {
-      // console.log(`getFromFirestore: Attempting to fetch from collection: ${collectionName}`);
       if (documentId) {
         const docSnap = await getDoc(doc(firestore, collectionName, documentId));
         if (!docSnap.exists()) {
           console.log(`getFromFirestore: Document ${documentId} not found in ${collectionName}`);
           return null;
         }
-        const data = { id: docSnap.id, ...docSnap.data() };
-        // console.log(`getFromFirestore: Document ${documentId} data:`, data);
+        return { id: docSnap.id, ...docSnap.data() };
+      } else {
+        const querySnapshot = await getDocs(collection(firestore, collectionName));
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         return data;
       }
     } catch (error) {

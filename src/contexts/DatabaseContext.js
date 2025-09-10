@@ -72,7 +72,7 @@ export const DatabaseProvider = ({ children }) => {
         setLoading(true);
         try {
             const result = await firebaseClient.getFromFirestore('trucks');
-            // console.log("fetchAllTrucksFromAPI - result from getFromFirestore:", result);
+            console.log("fetchAllTrucksFromAPI - result from getFromFirestore:", result);
             if (Array.isArray(result)) {
                 setAllTrucks(result);
             } else {
