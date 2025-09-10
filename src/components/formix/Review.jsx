@@ -238,19 +238,19 @@ useEffect(() => {
           <Row className="data-last">
             <Col span={24}>
               <h1>Overview</h1>
-              <p>Delivery Name: {details.name}</p>
-              <p>Contact Information: {details.contact}</p>
-              <p>Email Address: {details.email}</p>
-              <p>State Of Items: {details.state}</p>
+                <p className="text-dets">Title: <span className="text-dets-span">{details.name}</span></p>
+                <p className="text-dets">Contact Information: <span className="text-dets-span">{details.contact}</span></p>
+                <p className="text-dets">Email Address: <span style={{marginLeft:"0px"}} className="text-dets-span">{details.email}</span></p>
+                <p className="text-dets">State Of Items: <span className="text-dets-span">{details.state}</span></p>
             </Col>
             <Col span={24}>
               <h2>More Information</h2>
-              <p>Weight: {address.weight}</p>
-              <p>Pickup point: {address.pickup}</p>
-              <p>Destination: {address.destination}</p>
-              {loading && !truckInfo && (
-                <Progress percent={50} status="active" />
-              )}
+                <p className="text-dets">Weight: {address.weight}</p>
+                <p className="text-dets">Pickup point: {address.pickup}</p>
+                <p className="text-dets">Destination: {address.destination}</p>
+                {loading && !truckInfo && (
+                  <Progress percent={50} status="active" />
+                )}
               <div className={"form__item button__items d-flex justify-content-between"}>
                 <button className="rv-btn" type={"default"} onClick={prev}>
                   Back
@@ -267,7 +267,7 @@ useEffect(() => {
                 <div className="front-dets">
                   {/* <p className="est-time">Estimated Delivery Time: {calculateDeliveryTime(truckInfo)} hours</p> */}
                   <h1 className="truck-info-front">Navis found you a truck</h1>
-                  <p className="text-dets">Fuel Type-<span className="text-dets-span">{truckInfo.fuelType}</span></p>
+                  <p className="text-dets">Fuel Type: <span className="text-dets-span">{truckInfo.fuelType}</span></p>
                   <p className="text-dets">Make:<span className="text-dets-span">{truckInfo.make}</span></p>
                   <p className="text-dets">Mileage:<span className="text-dets-span">{truckInfo.mileage}</span></p>
                   <p className="text-dets">Type:<span className="text-dets-span">{truckInfo.type}</span></p>

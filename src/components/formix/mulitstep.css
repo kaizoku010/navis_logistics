@@ -1,6 +1,6 @@
 .details__wrapper{
     /* background-color: red; */
-    width: 39em;
+width: 100%;
 }
 
 
@@ -82,6 +82,7 @@ margin-bottom: .5em;
 
 #lastone{
     display: flex;
+    margin-top: 2%;
 }
 
 .right_section{

@@ -42,7 +42,7 @@ const Details = () => {
             </div>
             <div className={`form__item ${errors.contact && "input__error"}`}>
             <label>Contact information *</label>
-                <InputNumber className="tll-input number" name={"contact"}/>
+                <InputNumber type="number" className="tll-input number" name={"contact"}/>
               <p className={"error__feedback"}>{errors.contact}</p>
             </div>
             <div
@@ -55,7 +55,7 @@ const Details = () => {
             <div
               className={`form__item ${errors.profession && "input__error"}`}
             >
-              <label>State (state can either be liquid or solid) *</label>
+              <label>State of cargo (state can either be liquid or solid) *</label>
               <Select className="tll-input" name={"state"}>
                 <Select.Option value="solid">Solid</Select.Option>
                 <Select.Option value="liquid">Liquid</Select.Option>
