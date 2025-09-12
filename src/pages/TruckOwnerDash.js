@@ -18,6 +18,8 @@ function TruckOwnerDash() {
   const { user } = useAuth();
   const { trucks, drivers, nonUserDeliveries, deliveries, fetchDeliveriesFromAPI } = useDatabase();
 
+
+
 const getSortedDeliveriesByCompany = () => {
   if (!nonUserDeliveries || !user?.company) return [];
   return deliveries
@@ -27,7 +29,26 @@ const getSortedDeliveriesByCompany = () => {
     )
 };
 
-  console.log("deliveries accepted: ", getSortedDeliveriesByCompany().length)
+
+
+const getSortedDriversByCompany = () => {
+  if (!drivers || !user?.company) return [];
+  return drivers
+    .filter(drivers => 
+      drivers.company?.toLowerCase() === user.company.toLowerCase())
+};
+
+
+
+const getSortedtrucksByCompany = () => {
+  if (!trucks || !user?.company) return [];
+  return trucks
+    .filter(trucks => 
+      trucks.company?.toLowerCase() === user.company.toLowerCase()
+    )
+};
+
+  // console.log("deliveries accepted: ", getSortedDeliveriesByCompany().length)
 
   const completedDeliveriesByCompany = () => {
     if (!nonUserDeliveries || !user?.company) return [];
@@ -107,7 +128,7 @@ return <div className='dash-des'>
 </div>
 <IconBox
 iconClass="i fi-ss-driver-man"
-backgroundImage={DriverIc} number={drivers.length} title={"Number Of Drivers"}/>
+backgroundImage={DriverIc} number={getSortedDriversByCompany().length} title={"Number Of Drivers"}/>
 <IconBox
 iconClass="fi fi-ss-shipping-fast"
 backgroundImage={Trucks} number={trucks.length} title={"Number of Trucks"}/>

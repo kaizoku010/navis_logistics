@@ -72,7 +72,7 @@ function Header() {
         </div>
         <div className='contact-header'>
                   <i className="fi fi-sr-phone-rotary"></i>
-<p>Talk to sales: (+256)-750-323-993</p>
+<p>Talk to sales: (+256)-789-188-726</p>
         </div>
         <Link to="/sales" >
      

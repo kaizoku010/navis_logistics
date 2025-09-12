@@ -56,14 +56,14 @@
     "web-vitals": "^2.1.4",
     "zlib-browserify": "^0.0.3"
   },
+
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "test:api": "node test-api.js",
-    "start:server": "node local-server.js",
-    "eject": "react-scripts eject"
-  },
+    "start:server": "node local-server.js"
+    },
   "eslintConfig": {
     "extends": [
       "react-app",

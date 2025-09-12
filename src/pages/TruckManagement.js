@@ -18,8 +18,8 @@ function TruckManagement() {
     fetchDriversFromAPI,
     saveAssignmentToAPI,
     fetchAssignmentsFromAPI,
-    updateDriver, // Added updateDriver
-    deleteTruck, // Added deleteTruck
+    updateDriver, 
+    deleteTruck, 
     trucks,
     drivers,
     assignments,

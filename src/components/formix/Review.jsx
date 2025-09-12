@@ -216,7 +216,7 @@ useEffect(() => {
     return (
         <div className="success-message">
         <h1 className="rest">Request Successfully Forwarded</h1>
-        <p className="congs">Please hold on as we verifiy and prepare your truck, we shall reach out using your contact information or call (+256-750)-323-993 to talk sales.</p>
+        <p className="congs">Please hold on as we verifiy and prepare your truck, we shall reach out using your contact information or call (+256)-789-188-726 to talk sales.</p>
         <button type="primary" onClick={() => window.location.href = "/"}>
           Back Home
         </button>

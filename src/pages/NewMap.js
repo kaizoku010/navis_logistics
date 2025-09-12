@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GoogleMap, DirectionsService, DirectionsRenderer, Marker } from '@react-google-maps/api';
-import { Tooltip } from '@mui/material'; // Import Tooltip
-import { useDatabase } from '../contexts/DatabaseContext'; // Import useDatabase
+import { Tooltip } from '@mui/material';
 import './maps.css';
 
-function NewMap({ allRoutes, selectedRoute, driverCurrentLocation }) {
-  const { trucks } = useDatabase(); // Fetch trucks data
-  const [directionsResponses, setDirectionsResponses] = useState({}); // Store responses for multiple routes
+function NewMap({ allRoutes, selectedRoute, driverCurrentLocation, driverLocations }) {
+  const [directionsResponses, setDirectionsResponses] = useState({});
   const mapRef = useRef(null);
 
-  // Callback for each DirectionsService
   const directionsCallback = useCallback((response, routeId) => {
     if (response && response.status === 'OK') {
       setDirectionsResponses(prev => ({ ...prev, [routeId]: response }));
     }
   }, []);
 
-  // Adjust map bounds to fit all routes or selected route
   useEffect(() => {
     if (mapRef.current && (allRoutes.length > 0 || selectedRoute)) {
       const bounds = new window.google.maps.LatLngBounds();
@@ -38,7 +34,7 @@ function NewMap({ allRoutes, selectedRoute, driverCurrentLocation }) {
         mapRef.current.fitBounds(bounds);
       }
     }
-  }, [allRoutes, selectedRoute, directionsResponses]); // Depend on directionsResponses to update bounds after routes load
+  }, [allRoutes, selectedRoute, directionsResponses]);
 
   const containerStyle = {
     width: '100%',
@@ -46,23 +42,22 @@ function NewMap({ allRoutes, selectedRoute, driverCurrentLocation }) {
   };
 
   const mapOptions = {
-    gestureHandling: 'auto', // Allow gestures
+    gestureHandling: 'auto',
     draggable: true,
-    zoomControl: true, // Enable zoom control
-    scrollwheel: true, // Enable scrollwheel zoom
-    disableDefaultUI: false, // Enable default UI (including directions panel if available)
+    zoomControl: true,
+    scrollwheel: true,
+    disableDefaultUI: false,
   };
 
   return (
     <div className='map_area'>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={selectedRoute?.originCoords || allRoutes[0]?.originCoords || { lat: 1.373333, lng: 32.290275 }} // Center based on selected or first route, default to Uganda
+        center={selectedRoute?.originCoords || allRoutes[0]?.originCoords || { lat: 1.373333, lng: 32.290275 }}
         zoom={10}
         options={mapOptions}
         onLoad={(map) => (mapRef.current = map)}
       >
-        {/* Render markers for selected route or all routes */}
         {selectedRoute ? (
           <>
             <Marker position={selectedRoute.originCoords} />
@@ -70,14 +65,13 @@ function NewMap({ allRoutes, selectedRoute, driverCurrentLocation }) {
           </>
         ) : (
           allRoutes.map((route, index) => (
-            <React.Fragment key={route.uid || index}> {/* Use uid if available, otherwise index */}
+            <React.Fragment key={route.uid || index}>
               <Marker position={route.pickupCoords} />
               <Marker position={route.destinationCoords} />
             </React.Fragment>
           ))
         )}
 
-        {/* Render DirectionsService for each route */}
         {allRoutes.map((route, index) => (
           <DirectionsService
             key={`${route.uid}-${index}`}
@@ -86,58 +80,53 @@ function NewMap({ allRoutes, selectedRoute, driverCurrentLocation }) {
               destination: route.destinationCoords,
               travelMode: 'DRIVING',
             }}
-            callback={(response) => directionsCallback(response, route.uid)} // Pass route.uid to callback
+            callback={(response) => directionsCallback(response, route.uid)}
           />
         ))}
 
-        {/* Render DirectionsRenderer for each route */}
         {allRoutes.map((route, index) => directionsResponses[route.uid] && (
           <DirectionsRenderer
             key={`${route.uid}-${index}`}
             directions={directionsResponses[route.uid]}
             options={{
-              suppressMarkers: true, // Suppress default markers as we add our own
+              suppressMarkers: true,
               polylineOptions: {
-                strokeColor: selectedRoute && selectedRoute.uid === route.uid ? '#FF0000' : '#0000FF', // Highlight selected route
+                strokeColor: selectedRoute && selectedRoute.uid === route.uid ? '#FF0000' : '#0000FF',
                 strokeOpacity: selectedRoute && selectedRoute.uid === route.uid ? 1.0 : 0.5,
                 strokeWeight: selectedRoute && selectedRoute.uid === route.uid ? 6 : 4,
               },
             }}
           />
         ))}
-      {/* Render Truck Markers */}
-        {allRoutes.map(route => {
-          const assignedTruck = trucks.find(t => t.uid === route.truckId);
-          // Only render marker if truck is assigned and has location data
-          if (assignedTruck && assignedTruck.currentLatitude && assignedTruck.currentLongitude) {
-            return (
-              <Marker
-                key={`truck-${assignedTruck.uid}`}
-                position={{ lat: assignedTruck.currentLatitude, lng: assignedTruck.currentLongitude }}
-                icon={{
-                  url: "https://maps.google.com/mapfiles/ms/icons/truck.png", // Generic truck icon
-                  scaledSize: new window.google.maps.Size(32, 32),
-                }}
-              >
-                <Tooltip title={`${assignedTruck.numberPlate} - Status: ${assignedTruck.status || 'N/A'}`} arrow>
-                  <div /> {/* Tooltip needs a child element */}
-                </Tooltip>
-              </Marker>
-            );
-          }
-          return null;
-        })}
 
-        {/* Render Driver's Current Location Marker */}
+        {driverLocations && driverLocations.map((driver, index) => (
+          <Marker
+            key={`driver-${index}`}
+            position={{ lat: driver.lat, lng: driver.lng }}
+            icon={driver.imageUrl ? {
+              url: driver.imageUrl,
+              scaledSize: new window.google.maps.Size(40, 40),
+              anchor: new window.google.maps.Point(20, 20)
+            } : {
+              url: "https://maps.google.com/mapfiles/ms/icons/man.png",
+              scaledSize: new window.google.maps.Size(32, 32),
+            }}
+          >
+            <Tooltip title={driver.name} arrow>
+              <div />
+            </Tooltip>
+          </Marker>
+        ))}
+
         {driverCurrentLocation && (
           <Marker
             position={driverCurrentLocation}
             icon={driverCurrentLocation.imageUrl ? {
               url: driverCurrentLocation.imageUrl,
-              scaledSize: new window.google.maps.Size(40, 40), // Adjust size as needed
-              anchor: new window.google.maps.Point(20, 20) // Center the icon
+              scaledSize: new window.google.maps.Size(40, 40),
+              anchor: new window.google.maps.Point(20, 20)
             } : {
-              url: "https://maps.google.com/mapfiles/ms/icons/man.png", // Generic person icon
+              url: "https://maps.google.com/mapfiles/ms/icons/man.png",
               scaledSize: new window.google.maps.Size(32, 32),
             }}
           >
