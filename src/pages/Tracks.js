@@ -1,33 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useDatabase } from "../contexts/DatabaseContext";
+import { Row, Col, Card, Pagination, Modal, Button, Typography } from "antd";
+
+const { Title, Text } = Typography;
 
 const Tracks = () => {
   const { fetchTrucksFromAPI, trucks } = useDatabase();
-  const [currentPage, setCurrentPage] = useState(1); // Current page number
-  const itemsPerPage = 9; 
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
-  const [selectedTruck, setSelectedTruck] = useState(null); // Selected truck for modal
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTruck, setSelectedTruck] = useState(null);
 
-
-  // Fetch trucks when the component mounts
   useEffect(() => {
     fetchTrucksFromAPI();
   }, []);
 
-  // Calculate the current trucks to display
   const indexOfLastTruck = currentPage * itemsPerPage;
   const indexOfFirstTruck = indexOfLastTruck - itemsPerPage;
   const currentTrucks = trucks.slice(indexOfFirstTruck, indexOfLastTruck);
 
-  // Handle pagination
-  const totalPages = Math.ceil(trucks.length / itemsPerPage);
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   const openModal = (truck) => {
@@ -40,128 +33,67 @@ const Tracks = () => {
     setIsModalOpen(false);
   };
 
-
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Truck List</h1>
+      <Title level={2}>Truck List</Title>
 
-      {/* Trucks Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)", // 3 columns
-          gap: "20px", // Space between grid items
-        }}
-      >
+      <Row gutter={[16, 16]}>
         {currentTrucks.map((truck) => (
-          <div
-            key={truck.uid}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "15px",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            }}
-            onClick={() => openModal(truck)} // Open modal with truck details
-
-          >
-            <img
-              src={truck.imageUrl}
-              alt={truck.type}
-              style={{
-                width: "100%",
-                height: "150px",
-                objectFit: "cover",
-                borderRadius: "8px",
-              }}
-            />
-            <h3>{truck.type}</h3>
-            <p>Number Plate: {truck.numberPlate}</p>
-            <p>Company: {truck.company}</p>
-            <p>Load: {truck.load} kg</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination Controls */}
-      <div style={{ marginTop: "20px", display: "flex", justifyContent: "center" }}>
-        <button
-          onClick={handlePrevPage}
-          disabled={currentPage === 1}
-          style={{
-        
-            cursor: currentPage === 1 ? "not-allowed" : "pointer",
-          }}
-        >
-          Previous
-        </button>
-        <span style={{ padding: "10px 20px" }}>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          style={{
-      
-            cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-          }}
-        >
-          Next
-        </button>
-      </div>
-
-
-      {/* Modal for Truck Details */}
-      {isModalOpen && selectedTruck && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: "8px",
-              padding: "20px",
-              width: "400px",
-              textAlign: "center",
-              position: "relative",
-            }}
-          >
-        
-            <img
-              src={selectedTruck.imageUrl}
-              alt={selectedTruck.type}
-              style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" }}
-            />
-            <h2 style={{textAlign:"left"}}>{selectedTruck.type}</h2>
-            <div style={{display:"flex", flexDirection:"column", textAlign:"left"}}>
-           <p><strong>Number Plate:</strong> {selectedTruck.numberPlate}</p>
-            <p><strong>Company:</strong> {selectedTruck.company}</p>
-            <p><strong>Load:</strong> {selectedTruck.load} kg</p>
-            <p><strong>Year of Manufacture:</strong> {selectedTruck.yearOfManufacture}</p>
-            <p><strong>Fuel Type:</strong> {selectedTruck.fuelType}</p>
-            <p><strong>Mileage:</strong> {selectedTruck.mileage} km</p> 
-            <button style={{marginTop:"2rem"}}
-              onClick={closeModal}
+          <Col xs={24} sm={12} md={8} key={truck.uid}>
+            <Card
+              hoverable
+              cover={<img alt={truck.type} src={truck.imageUrl} style={{ height: 150, objectFit: 'cover' }} />}
+              onClick={() => openModal(truck)}
             >
-close            </button>    
-            </div>
+              <Card.Meta
+                title={truck.type}
+                description={
+                  <>
+                    <Text>Number Plate: {truck.numberPlate}</Text><br />
+                    <Text>Company: {truck.company}</Text><br />
+                    <Text>Load: {truck.load} kg</Text>
+                  </>
+                }
+              />
+            </Card>
+          </Col>
+        ))}
+      </Row>
 
-          
-          </div>
-        </div>
+      <div style={{ marginTop: "20px", display: "flex", justifyContent: "center" }}>
+        <Pagination
+          current={currentPage}
+          total={trucks.length}
+          pageSize={itemsPerPage}
+          onChange={handlePageChange}
+        />
+      </div>
+
+      {selectedTruck && (
+        <Modal
+          title={selectedTruck.type}
+          visible={isModalOpen}
+          onCancel={closeModal}
+          footer={[
+            <Button key="close" onClick={closeModal}>
+              Close
+            </Button>,
+          ]}
+        >
+          <img
+            src={selectedTruck.imageUrl}
+            alt={selectedTruck.type}
+            style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" }}
+          />
+          <Title level={4} style={{ marginTop: "1rem" }}>Details</Title>
+          <Text strong>Number Plate:</Text> {selectedTruck.numberPlate}<br />
+          <Text strong>Company:</Text> {selectedTruck.company}<br />
+          <Text strong>Load:</Text> {selectedTruck.load} kg<br />
+          <Text strong>Year of Manufacture:</Text> {selectedTruck.yearOfManufacture}<br />
+          <Text strong>Fuel Type:</Text> {selectedTruck.fuelType}<br />
+          <Text strong>Mileage:</Text> {selectedTruck.mileage} km
+        </Modal>
       )}
-
     </div>
   );
 };

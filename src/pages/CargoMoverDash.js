@@ -111,9 +111,9 @@ function CargoMoverDash() {
   const graphDeliveriesData = deliveriesSeries;
   const graphRequestsData = requestsSeries;
 
-  console.log("Graph Data - xAxisData:", graphXAxisData);
-  console.log("Graph Data - deliveriesData:", graphDeliveriesData);
-  console.log("Graph Data - requestsData:", graphRequestsData);
+  // console.log("Graph Data - xAxisData:", graphXAxisData);
+  // console.log("Graph Data - deliveriesData:", graphDeliveriesData);
+  // console.log("Graph Data - requestsData:", graphRequestsData);
 
   return <div className='dash-des'>
 
@@ -171,12 +171,12 @@ function CargoMoverDash() {
       You have {activeShipments} active shipments and {pendingShipments} pending.
     </Typography>
     <Stack direction="row" spacing={1}>
-      <Button variant="contained" onClick={() => navigate('/shipments')}>
+      <button variant="contained" onClick={() => navigate('/root/shipments')}>
         View All Shipments
-      </Button>
-      <Button variant="outlined" onClick={() => alert('Add New Shipment functionality to be implemented.')}>
+      </button>
+      <button variant="outlined" onClick={() => navigate('/root/shipments')}>
         Add New Shipment
-      </Button>
+      </button>
     </Stack>
   </CardContent>
 </Card>

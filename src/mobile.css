@@ -1,0 +1,47 @@
+/* For small laptops */
+@media screen and (max-width: 1024px) {
+  .left-content h1 {
+    font-size: 40px;
+  }
+  .left-content p {
+    font-size: 18px;
+  }
+}
+
+/* For tablets */
+@media screen and (max-width: 768px) {
+  .top-content {
+    flex-direction: column;
+  }
+  .left-content,
+  .right-content {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+  .left-content {
+    order: 2;
+  }
+  .right-content {
+    order: 1;
+  }
+  .left-content h1 {
+    font-size: 35px;
+  }
+  .left-content p {
+    font-size: 16px;
+  }
+}
+
+/* For mobile phones */
+@media screen and (max-width: 480px) {
+  .left-content h1 {
+    font-size: 30px;
+  }
+  .left-content p {
+    font-size: 14px;
+  }
+  .left-content button {
+    font-size: 18px;
+  }
+}

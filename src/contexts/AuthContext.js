@@ -77,7 +77,6 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            // console.log("AuthContext: onAuthStateChanged triggered. User:", user);
             if (user) {
                 const userDoc = await getDoc(doc(firestore, "users", user.uid));
                 console.log("AuthContext: User document data from Firestore:", userDoc.data());

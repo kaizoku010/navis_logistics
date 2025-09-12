@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
-  Button,
+  button,
   Modal,
   TextField,
   Typography,
@@ -51,7 +51,7 @@ const Shipments = () => {
   const { deliveries, fetchDeliveriesFromAPI, saveDeliveryToAPI, fetchTrucksFromAPI } = useDatabase();
 
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false); // Local loading state
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
     state: '',
@@ -61,6 +61,13 @@ const Shipments = () => {
     pickupPoint: '',
     contact: '',
   });
+
+//a simple test to see if we can map user shipments only
+   const testArray = deliveries
+    .filter(delivery => 
+      delivery.company?.toLowerCase() === user.company.toLowerCase())
+
+      console.log("test deliveries: ", testArray)
 
   const [directions, setDirections] = useState(null);
   const [markers, setMarkers] = useState({ pickup: null, destination: null });
@@ -240,9 +247,9 @@ const Shipments = () => {
             </Grid>
           </Grid>
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={handleSubmit} variant="contained" disabled={loading}>
+            <button onClick={handleSubmit} variant="contained" disabled={loading}>
               {loading ? <CircularProgress size={24} /> : 'Save'}
-            </Button>
+            </button>
           </Box>
         </Box>
       </Modal>
@@ -254,11 +261,11 @@ const Shipments = () => {
             This section lets you add shipments which will be observed by our AI and then pick
             the most viable transportation available in our system.
           </p>
-          <Button variant="contained" onClick={handleOpen}>
+          <button variant="contained" onClick={handleOpen}>
             Add Shipment
-          </Button>
+          </button>
           <List className="data">
-            {deliveries.map((delivery) => (
+            {testArray.map((delivery) => (
               <ListItem
               divider={true}
                 key={delivery.uid}

@@ -23,26 +23,33 @@ function DriverDashboard() {
     fetchAssignmentsFromAPI();
   }, []);
 
+
+  // console.log("all trucks: ", trucks);
+
   useEffect(() => {
     if (driver && deliveries.length > 0 && trucks.length > 0) {
       // Use currentDeliveryId and currentTruckId directly from the driver object
       const currentDeliveryId = driver.currentDeliveryId;
-      const currentTruckId = driver.currentTruckId;
+      const currentTruckId = deliveries.find(d => d.id === currentDeliveryId)?.truckId;
 
       let foundDelivery = null;
       let foundTruck = null;
 
       if (currentDeliveryId) {
         foundDelivery = deliveries.find(d => d.id === currentDeliveryId); // Assuming delivery.id matches currentDeliveryId
+        console.log("assigned truck: ", foundDelivery)
       }
       if (currentTruckId) {
-        foundTruck = trucks.find(t => t.id === currentTruckId); // Assuming truck.id matches currentTruckId
+        foundTruck = trucks.find(t => t.uid === currentTruckId); // Assuming truck.id matches currentTruckId
+
       }
 
       setCurrentDelivery(foundDelivery);
       setCurrentTruck(foundTruck);
     }
   }, [driver, deliveries, trucks]); // Removed assignments from dependency array
+
+
 
   useEffect(() => {
     let intervalId;
@@ -149,6 +156,7 @@ function DriverDashboard() {
     message.info("Delivery stopped. Location tracking paused.");
   };
 
+
   const mapRoutes = currentDelivery ? [{
     uid: currentDelivery.uid,
     // If tracking, origin is driver's current location, otherwise it's the delivery pickup
@@ -164,6 +172,9 @@ function DriverDashboard() {
     },
     truckId: currentTruck ? currentTruck.uid : null,
   }] : [];
+
+
+
 
   return (
     <div className="driver-dashboard">
