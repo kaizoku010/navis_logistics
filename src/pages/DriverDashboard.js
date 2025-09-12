@@ -23,7 +23,6 @@ function DriverDashboard() {
     fetchAssignmentsFromAPI();
   }, []);
 
-
   // console.log("all trucks: ", trucks);
 
   useEffect(() => {
@@ -37,7 +36,7 @@ function DriverDashboard() {
 
       if (currentDeliveryId) {
         foundDelivery = deliveries.find(d => d.id === currentDeliveryId); // Assuming delivery.id matches currentDeliveryId
-        console.log("assigned truck: ", foundDelivery)
+        // console.log("assigned truck: ", foundDelivery)
       }
       if (currentTruckId) {
         foundTruck = trucks.find(t => t.uid === currentTruckId); // Assuming truck.id matches currentTruckId

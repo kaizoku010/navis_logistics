@@ -87,6 +87,11 @@ a{
 
 }
 
+
+.error-message{
+  color: red !important;
+}
+
 .c_userName {
     margin-bottom: 0px;
     font-weight: 500;
