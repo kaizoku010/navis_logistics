@@ -1,7 +1,6 @@
 /* src/header.css */
 .header_div {
     height: 5rem;
-    box-shadow: -6px 0 rgb(212, 18, 18), 6px 0 rgb(65, 13, 13), 0 7px 5px -2px black;
   }
   
   .headerHolder {
@@ -110,7 +109,11 @@ margin-right: 0%;
     color: #19497e;
   }
   
-  /* #ic:hover {
+  .mobile_menu_button {
+  cursor: pointer;
+}
+
+/* #ic:hover {
     color: white;
   } */
   

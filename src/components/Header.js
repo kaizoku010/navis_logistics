@@ -1,5 +1,6 @@
 import React from 'react';
 import "./header.css";
+import "../mobile.css";
 import {
   useScroll,
   useAnimatedValue,
@@ -27,12 +28,28 @@ function Header() {
     }
   );
 
-  const imageSize = interpolate(y.value, [0, 25], [100, 50], {
-    extrapolate: "clamp"
-  });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
-    <div className='header_div'>
+    <div className={`header_div ${isMobileMenuOpen ? 'overlay' : ''}`} onClick={isMobileMenuOpen ? toggleMobileMenu : null}>
       <AnimatedBlock
         className="blockHeader"
         style={{
@@ -50,38 +67,49 @@ function Header() {
       >
         <AnimatedBlock className="logo_holder">
           <img className='logo' src={Logo} />
-          <div className='button_holder'>
+        </AnimatedBlock>
+        <div className={`button_holder ${isMobileMenuOpen ? 'mobile_menu_open' : ''}`}>
+            <div className="close_mobile_menu" onClick={toggleMobileMenu}>
+              <i className="fi fi-rr-cross-small"></i>
+            </div>
             <button className='header_btn'>Home</button>
             <button className='header_btn'>Features</button>
             <button className='header_btn'>Pricing</button>
             <Link to="/sales">
-            <button className='header_btn'>Contact</button>
+              <button className='header_btn'>Contact</button>
             </Link>
-          </div>
-        </AnimatedBlock>
+            <div className='contact-header-mobile'>
+              <i className="fi fi-sr-phone-rotary"></i>
+              <p>Talk to sales: (+256)-789-188-726</p>
+            </div>
+            <Link to="/sales" >
+              <div style={{ color: "#8da5fe", cursor: "pointer" }} className='login_header_mobile'>
+                <h4 className='font-bold whiteMe'>Get Started</h4>
+              </div>
+            </Link>
+        </div>
         <div
           style={{
-            fontWeight: "bold",
-            fontSize: 20,
-            marginLeft: 20,
             flex: 1,
-            color: "#353535"
           }}
         >
-          {/* Header Title */}
         </div>
-        <div className='contact-header'>
-                  <i className="fi fi-sr-phone-rotary"></i>
-<p>Talk to sales: (+256)-789-188-726</p>
+        {!isMobile && (
+          <>
+            <div className='contact-header'>
+              <i className="fi fi-sr-phone-rotary"></i>
+              <p>Talk to sales: (+256)-789-188-726</p>
+            </div>
+            <Link to="/sales" >
+              <div style={{ color: "#8da5fe", cursor: "pointer" }}className='login_header'>
+                <h4 className='font-bold whiteMe'>Get Started</h4>
+              </div>
+            </Link>
+          </>
+        )}
+        <div className="mobile_menu_button" onClick={toggleMobileMenu}>
+          <i className={`fi fi-rr-${isMobileMenuOpen ? 'close' : 'menu-burger'}`}></i>
         </div>
-        <Link to="/sales" >
-     
-        <div style={{ color: "#8da5fe", cursor: "pointer" }}className='login_header'>
-        
-          <h4 className='font-bold whiteMe'>Get Started</h4>
-          {/* <i id='ic' className='icon fi fi-rr-arrow-right'></i> */}
-        </div>
-        </Link>
       </AnimatedBlock>
     </div>
   );
