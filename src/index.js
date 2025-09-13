@@ -41,6 +41,9 @@ import {
 import { FirebaseProvider } from "./contexts/firebaseContext";
 import DeliveriesEnroute from "./pages/DeliveriesEnroute.js";
 
+
+console.log("Firebase API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
   if (
@@ -51,6 +54,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
   return children;
 };
+
+
 
 const DriverProtectedRoute = ({ children }) => {
   const { driver } = useDriverAuth();
