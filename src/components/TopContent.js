@@ -57,11 +57,11 @@ const navigation = useNavigate();
   
 
   const start = ()=>{
-navigation("/login")
+navigation("/start")
   }
 
   const sales = ()=>{
-    navigation("/start")
+    navigation("/login")
       }
   
 

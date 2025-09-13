@@ -9,3 +9,4 @@ server/
 .env.production.local
 server/.env
 src/config/serviceAccountKey.json
+.vercel
