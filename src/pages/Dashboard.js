@@ -6,10 +6,14 @@ import IconBox from '../components/IconBox';
 import Graph from '../components/Graph';
 import Search from '../components/Search';
 import pp from "../assets/pp.jpg"
-import { useAWS } from '../contexts/awsContext';
+import { useAuth } from '../contexts/AuthContext';
 
 function Dashboard() {
-  const { user, logoutUser } = useAWS();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="loading-container">Loading...</div>;
+  }
 
   return <div className='dash-des'>
 <div className='header card'>
