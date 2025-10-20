@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDriverAuth } from '../contexts/DriverAuthContext'; // Import useDriverAuth
 import Logo from "../assets/logo2.png";
@@ -9,7 +9,7 @@ function LoginDriver() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false); // Local loading state
-  const { driverLogin } = useDriverAuth(); // Use driverLogin from DriverAuthContext
+  const { driverLogin, driver } = useDriverAuth(); // Use driverLogin from DriverAuthContext and get driver state
   const navigate = useNavigate();
 
   const home =()=>{
@@ -28,12 +28,11 @@ function LoginDriver() {
 
     setLoading(true); // Set local loading state to true
     try {
+      // driverLogin will update the context, triggering the useEffect
       const success = await driverLogin(email, password);
       if (success) {
-        console.log("Login successful!");
-        navigate('/root/driver'); // Navigate to driver dashboard on success
+        navigate('/root/driver'); // Navigate to driver dashboard on successful login
       } else {
-        console.log("Login failed. Invalid credentials.");
         setError('Invalid email or password');
       }
     } catch (err) {

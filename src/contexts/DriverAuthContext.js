@@ -1,94 +1,115 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { Navigate } from 'react-router-dom';
 import { firestore } from './firebaseContext';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, onSnapshot } from 'firebase/firestore';
 
 const DriverAuthContext = createContext();
 
 export function DriverAuthProvider({ children }) {
-  const [driver, setDriver] = useState(() => {
-    const saved = localStorage.getItem('driverSession');
-    return saved ? JSON.parse(saved) : null;
-  });
-  
+  const [driver, setDriver] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Effect to restore driver session from localStorage on initial mount
   useEffect(() => {
-    const fetchDriverData = async () => {
-      if (driver && driver.id) {
-        try {
-          const driverDocRef = doc(firestore, 'drivers', driver.id);
-          const driverDocSnap = await getDoc(driverDocRef);
-          if (driverDocSnap.exists()) {
-            const fetchedDriverData = {
-              id: driverDocSnap.id,
-              accountType: 'driver',
-              ...driverDocSnap.data()
-            };
-            if (JSON.stringify(fetchedDriverData) !== JSON.stringify(driver)) {
-                setDriver(fetchedDriverData);
-            }
-            localStorage.setItem('driverSession', JSON.stringify(fetchedDriverData));
-          } else {
-            console.warn("Driver document not found in Firestore.");
-            localStorage.removeItem('driverSession');
-            setDriver(null);
-          }
-        } catch (error) {
-          console.error("Error fetching driver data from Firestore:", error);
-        }
-      } else if (!driver) {
-        localStorage.removeItem('driverSession');
+    try {
+      const saved = localStorage.getItem('driverSession');
+      if (saved) {
+        const parsedDriver = JSON.parse(saved);
+        setDriver(parsedDriver);
       }
-    };
+    } catch (error) {
+      console.error("Failed to parse driver session from localStorage", error);
+      localStorage.removeItem('driverSession');
+    }
+    setLoading(false);
+  }, []);
 
-    fetchDriverData();
-  }, [driver?.id]); // Re-run when driver.id changes (e.g., on initial login or logout)
+  const driverLogout = useCallback(() => {
+    localStorage.removeItem('driverSession');
+    setDriver(null);
+  }, []);
 
-  const driverLogin = async (email, password) => {
+  // Effect to listen for real-time updates to the driver's document in Firestore
+  useEffect(() => {
+    if (!driver?.id) {
+      // No driver ID, so no document to listen to
+      return;
+    }
+
+    const driverDocRef = doc(firestore, 'drivers', driver.id);
+    const unsubscribe = onSnapshot(driverDocRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const updatedDriverData = { id: snapshot.id, accountType: 'driver', ...snapshot.data() };
+          setDriver(updatedDriverData);
+          // Also update localStorage to keep it in sync
+          localStorage.setItem('driverSession', JSON.stringify(updatedDriverData));
+        } else {
+          // Document might have been deleted, log out the driver
+          console.warn("Driver document no longer exists in Firestore. Logging out.");
+          driverLogout();
+        }
+      },
+      (error) => {
+        console.error("Error listening to driver document updates:", error);
+      }
+    );
+
+    // Clean up the listener when the component unmounts or driver.id changes
+    return () => unsubscribe();
+  }, [driver?.id, driverLogout]); // Depend on driver.id to re-subscribe when driver changes
+
+  const driverLogin = useCallback(async (email, password) => {
+    setLoading(true);
     try {
       const driversRef = collection(firestore, 'drivers');
-      const q = query(driversRef, 
-        where('email', '==', email), 
-        where('password', '==', password)
-      );
+      const q = query(driversRef, where("email", "==", email), where("password", "==", password));
       const snapshot = await getDocs(q);
-  
+
       if (!snapshot.empty) {
         const doc = snapshot.docs[0];
-        // Verify driver account is active
         if(doc.data().status !== 'active' && doc.data().status !== 'available') {
           throw new Error('Driver account disabled');
         }
-        const driverData = { 
-          id: doc.id, 
+        const driverData = {
+          id: doc.id,
           accountType: 'driver',
-          ...doc.data() 
+          ...doc.data()
         };
         setDriver(driverData);
+        localStorage.setItem('driverSession', JSON.stringify(driverData));
         return true;
       }
       return false;
-    } catch (error) {
-      console.error('Driver login error:', error);
-      throw error;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const driverLogout = () => {
-    localStorage.removeItem('driverSession');
-    setDriver(null);
-  };
+  const value = useMemo(() => ({
+    driver,
+    loading,
+    driverLogin,
+    driverLogout,
+    isAuthenticated: !!driver
+  }), [driver, loading, driverLogin, driverLogout]);
 
   return (
-    <DriverAuthContext.Provider
-      value={{ 
-        driver,
-        driverLogin,
-        driverLogout,
-        isAuthenticated: !!driver
-      }}
-    >
+    <DriverAuthContext.Provider value={value}>
       {children}
     </DriverAuthContext.Provider>
   );
 }
 
 export const useDriverAuth = () => useContext(DriverAuthContext);
+
+export const DriverProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useDriverAuth();
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  if (!isAuthenticated) {
+    return <Navigate to="/login-driver" replace />;
+  }
+  return children;
+};

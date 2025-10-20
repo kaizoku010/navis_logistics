@@ -1,52 +1,50 @@
 import React, { useEffect, useState } from 'react';
-import { useDriverAuth } from '../contexts/DriverAuthContext'; // Use useDriverAuth
+import { useDriverAuth } from '../contexts/DriverAuthContext';
 import { useDatabase } from '../contexts/DatabaseContext';
-import NewMap from './NewMap'; // Reusing the NewMap component
-import { useNavigate } from 'react-router-dom'; // Added
+import { useDriverDeliveries } from '../contexts/DriverDeliveryContext'; // Import useDriverDeliveries
+import NewMap from './NewMap';
+import { useNavigate } from 'react-router-dom';
 import { Card, Descriptions, List, Empty, Button, message } from 'antd';
-import './driverDashboard.css'; // Assuming a new CSS file for styling
+import './driverDashboard.css';
 
 function DriverDashboard() {
-  const { driver } = useDriverAuth(); // Get driver from useDriverAuth
-  const { deliveries, trucks, assignments, fetchDeliveriesFromAPI, fetchTrucksFromAPI, fetchAssignmentsFromAPI, updateDriverLocationInAPI, updateDeliveryStatusForDeliveryCollectionInAPI } = useDatabase();
+  const { driver } = useDriverAuth();
+  const { trucks, assignments, fetchTrucksFromAPI, fetchAssignmentsFromAPI, updateDriverLocationInAPI, updateDeliveryStatusForDeliveryCollectionInAPI } = useDatabase();
+  const { assignedDeliveries, loadingDeliveries } = useDriverDeliveries();
   const navigate = useNavigate();
 
   const [currentDelivery, setCurrentDelivery] = useState(null);
   const [currentTruck, setCurrentTruck] = useState(null);
   const [isTrackingLocation, setIsTrackingLocation] = useState(false);
-  const [startTime, setStartTime] = useState(null); // New state for start time
-  const [elapsedTime, setElapsedTime] = useState(0); // New state for elapsed time in seconds
+  const [startTime, setStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
-    fetchDeliveriesFromAPI();
     fetchTrucksFromAPI();
     fetchAssignmentsFromAPI();
   }, []);
 
-  // console.log("all trucks: ", trucks);
-
   useEffect(() => {
-    if (driver && deliveries.length > 0 && trucks.length > 0) {
-      // Use currentDeliveryId and currentTruckId directly from the driver object
+    if (driver && assignedDeliveries.length > 0 && trucks.length > 0) {
       const currentDeliveryId = driver.currentDeliveryId;
-      const currentTruckId = deliveries.find(d => d.id === currentDeliveryId)?.truckId;
-
+      
       let foundDelivery = null;
-      let foundTruck = null;
-
       if (currentDeliveryId) {
-        foundDelivery = deliveries.find(d => d.id === currentDeliveryId); // Assuming delivery.id matches currentDeliveryId
-        // console.log("assigned truck: ", foundDelivery)
+        foundDelivery = assignedDeliveries.find(d => d.id === currentDeliveryId); 
       }
-      if (currentTruckId) {
-        foundTruck = trucks.find(t => t.uid === currentTruckId); // Assuming truck.id matches currentTruckId
 
+      let foundTruck = null;
+      if (foundDelivery?.truckId) {
+        foundTruck = trucks.find(t => t.uid === foundDelivery.truckId);
       }
 
       setCurrentDelivery(foundDelivery);
       setCurrentTruck(foundTruck);
+    } else if (driver && assignedDeliveries.length === 0) {
+      setCurrentDelivery(null);
+      setCurrentTruck(null);
     }
-  }, [driver, deliveries, trucks]); // Removed assignments from dependency array
+  }, [driver, assignedDeliveries, trucks]);
 
 
 
@@ -193,7 +191,9 @@ function DriverDashboard() {
         </div>
         <div className="control-panel-section">
           <Card title="Current Delivery" style={{ marginBottom: 20 }}>
-            {currentDelivery ? (
+            {loadingDeliveries ? (
+              <Empty description="Loading assigned deliveries..." />
+            ) : currentDelivery ? (
               <>
                 <Descriptions column={1} size="small">
                   <Descriptions.Item label="Name">{currentDelivery.name}</Descriptions.Item>

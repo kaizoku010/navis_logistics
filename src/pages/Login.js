@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Logo from "../assets/logo2.png";
 import "./logic.css";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
@@ -10,17 +10,11 @@ function Login() {
   const [error, setError] = useState(null);
   const { loading, login, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
 
 
-    useEffect(() => {
-        if (user) {
-            navigateToDashboard(user);
-        }
-    }, [user]);
-
-
-    const navigateToDashboard = (user) => {
+    const navigateToDashboard = useCallback((user) => {
       switch (user.accountType) {
         case 'root':
           navigate("/root/dashboard");
@@ -37,7 +31,13 @@ function Login() {
         default:
           setError("Invalid account type");
       }
-    };
+    }, [navigate, setError]);
+
+    useEffect(() => {
+        if (user && location.pathname === '/login') {
+            navigateToDashboard(user);
+        }
+    }, [user, location.pathname, navigateToDashboard]);
 
     const handleSubmit = async (e) => {
       e.preventDefault();

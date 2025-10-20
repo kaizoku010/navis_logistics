@@ -1,4 +1,5 @@
-.loading-container {
+
+.truck-owner-loading-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -6,12 +7,12 @@
   font-size: 24px;
 }
 
-.dash-des {
+.truck-owner-dash-des {
   padding: 20px;
   background-color: #f4f6f8;
 }
 
-.header.card {
+.truck-owner-header.truck-owner-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -21,70 +22,65 @@
   margin-bottom: 20px;
 }
 
-.name_user_image {
+.truck-owner-name_user_image {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.cargo-mover-data {
-  text-align: right;
+.truck-owner-userImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f4f6f8;
 }
 
-.c_userName {
+.truck-owner-userName {
   font-weight: bold;
   margin: 0;
 }
 
-.c_userComp {
+.truck-owner-userComp_ {
   margin: 0;
   color: #666;
 }
 
-.card {
+.truck-owner-cargo-mover-data {
+  text-align: right;
+}
+
+.truck-owner-c_userName {
+  font-weight: bold;
+  margin: 0;
+}
+
+.truck-owner-c_userComp {
+  margin: 0;
+  color: #666;
+}
+
+.truck-owner-card {
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.top-content {
+.truck-owner-top-content {
   display: flex;
   gap: 20px;
 }
 
-.div-left {
+.truck-owner-div-left {
   flex: 3;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.div-right {
-  flex: 1;
+.truck-owner-boxes {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 20px;
-}
-
-.boxes {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.MuiGrid-container {
-  align-items: stretch !important;
-}
-
-.MuiGrid-item > .MuiStack-root {
-  height: 100%;
-}
-
-.MuiGrid-item > .MuiStack-root > .MuiCard-root {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.MuiGrid-item > .MuiStack-root > .MuiCard-root > .MuiCardContent-root {
-  flex-grow: 1;
 }

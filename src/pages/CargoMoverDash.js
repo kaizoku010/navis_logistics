@@ -8,8 +8,11 @@ import Search from '../components/Search';
 import NewMap from './NewMap'; 
 import { useAuth } from '../contexts/AuthContext';
 import { useDatabase } from '../contexts/DatabaseContext';
+import { useCargoMoverDeliveries } from '../contexts/CargoMoverDeliveryContext';
+import { useCargoMoverDrivers } from '../contexts/CargoMoverDriverContext';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, Typography, Button, Stack } from '@mui/material';
+import { Card, CardContent, Typography, Button, Stack, Grid, Box, CircularProgress } from '@mui/material';
+import { Add, ListAlt } from '@mui/icons-material';
 
 // Helper function to get the start of the week (Sunday)
 const getStartOfWeek = (date) => {
@@ -59,25 +62,25 @@ const aggregateDataWeekly = (data, companyId) => {
 
 function CargoMoverDash() {
   const { user } = useAuth();
-  const { deliveries, fetchDeliveriesFromAPI, nonUserDeliveries, fetchNonUserDeliveriesFromAPI, drivers, fetchDriversFromAPI } = useDatabase();
+  const { nonUserDeliveries, fetchNonUserDeliveriesFromAPI } = useDatabase(); // Keep nonUserDeliveries if still needed
+  const { companyDeliveries, loadingCompanyDeliveries } = useCargoMoverDeliveries();
+  const { companyDrivers, loadingCompanyDrivers } = useCargoMoverDrivers();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.company) {
-      fetchDeliveriesFromAPI();
-      fetchNonUserDeliveriesFromAPI();
-      fetchDriversFromAPI();
+      fetchNonUserDeliveriesFromAPI(); // Keep if nonUserDeliveries are still fetched via useDatabase
     }
-  }, [user?.company, fetchDeliveriesFromAPI, fetchNonUserDeliveriesFromAPI, fetchDriversFromAPI]);
+  }, [user?.company, fetchNonUserDeliveriesFromAPI]);
 
-  const cargoMoverDeliveries = deliveries.filter(
+  const cargoMoverDeliveries = companyDeliveries.filter(
     (delivery) => delivery.company === user?.company
   );
 
   const activeDeliveries = cargoMoverDeliveries.filter(d => d.status === 'assigned' || d.status === 'in_transit');
 
   const driverLocations = activeDeliveries.map(delivery => {
-    const driver = drivers.find(d => d.id === delivery.driverId);
+    const driver = companyDrivers.find(d => d.id === delivery.driverId);
     if (driver && driver.currentLatitude && driver.currentLongitude) {
       return {
         lat: driver.currentLatitude,
@@ -100,74 +103,126 @@ function CargoMoverDash() {
   const graphDeliveriesData = deliveriesSeries;
   const graphRequestsData = requestsSeries;
 
-  return <div className='dash-des'>
+  const isLoading = loadingCompanyDeliveries || loadingCompanyDrivers;
 
-    <div className='header card'>
-      <Search/>
-      <div className='name_user_image'>
-        <div className='cargo-mover-data'>
-          <p className='c_userName'>{user?.username}</p>
-          <p className='c_userComp'>{user?.company}</p>  
-          <p className='c_userComp'>{user?.accountType}</p>  
-        </div>
-        <img className='userImage' src={user?.imageUrl} alt="User profile" />
-      </div>
-    </div>
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-    <div className='top-content'>
-      <div className='div-left'>
-        <GuyBanner company={user?.company} link="shipments"/>
-        <Graph xAxisData={graphXAxisData} deliveriesData={graphDeliveriesData} requestsData={graphRequestsData}/>
-        <div style={{ height: '500px', width: '100%', marginTop: '20px' }}>
-          <NewMap allRoutes={activeDeliveries} driverLocations={driverLocations} />
+  return (
+    <div className='dash-des'>
+      <div className='header card'>
+        <Search/>
+        <div className='name_user_image'>
+          <div className='cargo-mover-data'>
+            <p className='c_userName'>{user?.username}</p>
+            <p className='c_userComp'>{user?.company}</p>  
+            <p className='c_userComp'>{user?.accountType}</p>  
+          </div>
         </div>
       </div>
-      <div className='boxes'>
-        <div className='div-right'>
-          <IconBox
-            iconClass="fi fi-sr-check-circle"
-            number={totalShipments}
-            title={"Total Shipments"}
-          />
-          <IconBox
-            iconClass="fi fi-sr-hourglass-end"
-            number={pendingShipments}
-            title={"Pending Shipments"}
-          />
-        </div>
-        <div className='div-right'>
-          <IconBox
-            iconClass="fi fi-sr-shipping-fast"
-            number={activeDeliveries.length}
-            title={"Active Shipments"}
-          />
-          <IconBox
-            iconClass="fi fi-sr-check-circle"
-            number={completedShipments}
-            title={"Completed Shipments"}
-          />
-        </div>
-        <Card sx={{ minWidth: 275, mt: 2 }}>
-          <CardContent>
-            <Typography variant="h6" component="div">
-              Shipment Overview
-            </Typography>
-            <Typography sx={{ mb: 1.5 }} color="text.secondary">
-              You have {activeDeliveries.length} active shipments and {pendingShipments} pending.
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <button variant="contained" onClick={() => navigate('/root/shipments')}>
-                View All Shipments
-              </button>
-              <button variant="outlined" onClick={() => navigate('/root/shipments')}>
-                Add New Shipment
-              </button>
-            </Stack>
-          </CardContent>
-        </Card>
-      </div>
+
+      <Grid container spacing={3} sx={{ mt: 2 }}>
+        {/* Left Side */}
+        <Grid item xs={12} md={8}>
+          <Stack spacing={3}>
+            <Card>
+              <CardContent>
+                <GuyBanner company={user?.company} link="shipments"/>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Graph xAxisData={graphXAxisData} deliveriesData={graphDeliveriesData} requestsData={graphRequestsData}/>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <div style={{ height: '500px', width: '100%' }}>
+                  <NewMap allRoutes={activeDeliveries} driverLocations={driverLocations} />
+                </div>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Grid>
+
+        {/* Right Side */}
+        <Grid item xs={12} md={4}>
+          <Stack spacing={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" component="div" gutterBottom>
+                  Shipment Stats
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <IconBox
+                      iconClass="fi fi-sr-check-circle"
+                      number={totalShipments}
+                      title={"Total Shipments"}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <IconBox
+                      iconClass="fi fi-sr-hourglass-end"
+                      number={pendingShipments}
+                      title={"Pending Shipments"}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <IconBox
+                      iconClass="fi fi-sr-shipping-fast"
+                      number={activeDeliveries.length}
+                      title={"Active Shipments"}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <IconBox
+                      iconClass="fi fi-sr-check-circle"
+                      number={completedShipments}
+                      title={"Completed Shipments"}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+            <Card sx={{ backgroundColor: '#1976d2', color: 'white' }}>
+              <CardContent>
+                <Typography variant="h5" component="div" gutterBottom>
+                  Shipment Overview
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  You have {activeDeliveries.length} active and {pendingShipments} pending shipments.
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Button 
+                    variant="contained"
+                    startIcon={<ListAlt />}
+                    onClick={() => navigate('/root/shipments')}
+                    sx={{ backgroundColor: 'white', color: '#1976d2', '&:hover': { backgroundColor: '#e0e0e0' } }}
+                  >
+                    View All Shipments
+                  </Button>
+                  <Button 
+                    variant="outlined"
+                    startIcon={<Add />}
+                    onClick={() => navigate('/root/shipments')}
+                    sx={{ color: 'white', borderColor: 'white', '&:hover': { borderColor: '#e0e0e0', backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
+                  >
+                    Add New Shipment
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Grid>
+      </Grid>
     </div>
-  </div>;
+  );
 }
 
 export default CargoMoverDash;

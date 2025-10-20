@@ -3,7 +3,7 @@ import { GoogleMap, DirectionsService, DirectionsRenderer, Marker } from '@react
 import { Tooltip } from '@mui/material';
 import './maps.css';
 
-function NewMap({ allRoutes, selectedRoute, driverCurrentLocation, driverLocations }) {
+function NewMap({ allRoutes, selectedRoute, driverLocations }) {
   const [directionsResponses, setDirectionsResponses] = useState({});
   const mapRef = useRef(null);
 
@@ -103,6 +103,7 @@ function NewMap({ allRoutes, selectedRoute, driverCurrentLocation, driverLocatio
           <Marker
             key={`driver-${index}`}
             position={{ lat: driver.lat, lng: driver.lng }}
+            title={driver.title}
             icon={driver.imageUrl ? {
               url: driver.imageUrl,
               scaledSize: new window.google.maps.Size(40, 40),
@@ -111,30 +112,8 @@ function NewMap({ allRoutes, selectedRoute, driverCurrentLocation, driverLocatio
               url: "https://maps.google.com/mapfiles/ms/icons/man.png",
               scaledSize: new window.google.maps.Size(32, 32),
             }}
-          >
-            <Tooltip title={driver.name} arrow>
-              <div />
-            </Tooltip>
-          </Marker>
+          />
         ))}
-
-        {driverCurrentLocation && (
-          <Marker
-            position={driverCurrentLocation}
-            icon={driverCurrentLocation.imageUrl ? {
-              url: driverCurrentLocation.imageUrl,
-              scaledSize: new window.google.maps.Size(40, 40),
-              anchor: new window.google.maps.Point(20, 20)
-            } : {
-              url: "https://maps.google.com/mapfiles/ms/icons/man.png",
-              scaledSize: new window.google.maps.Size(32, 32),
-            }}
-          >
-            <Tooltip title="Driver's Current Location" arrow>
-              <div />
-            </Tooltip>
-          </Marker>
-        )}
       </GoogleMap>
     </div>
   );

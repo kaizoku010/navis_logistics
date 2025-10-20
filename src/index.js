@@ -34,10 +34,12 @@ import Multi from "./pages/Multi.js";
 import AcceptedDeliveries from "./pages/AcceptedDeliveries.js";
 import LoginDriver from "./pages/LoginDriver";
 import { LoadScript } from "@react-google-maps/api";
-import {
-  DriverAuthProvider,
-  useDriverAuth,
-} from "./contexts/DriverAuthContext";
+import { DriverAuthProvider, useDriverAuth, } from "./contexts/DriverAuthContext";
+import { DriverDeliveryProvider, useDriverDeliveries } from "./contexts/DriverDeliveryContext";
+import { CargoMoverDeliveryProvider } from "./contexts/CargoMoverDeliveryContext";
+import { CargoMoverDriverProvider } from "./contexts/CargoMoverDriverContext";
+import { TruckOwnerTruckProvider } from "./contexts/TruckOwnerTruckContext";
+import { TruckOwnerDriverProvider } from "./contexts/TruckOwnerDriverContext";
 import { FirebaseProvider } from "./contexts/firebaseContext";
 import DeliveriesEnroute from "./pages/DeliveriesEnroute.js";
 // console.log("Firebase API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
@@ -57,11 +59,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 
 const DriverProtectedRoute = ({ children }) => {
-  const { driver } = useDriverAuth();
+  const { driver, loading } = useDriverAuth();
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a spinner component
+  }
+
   return driver?.accountType === "driver" ? (
     children
   ) : (
-    <Navigate to="/login" replace />
+    <Navigate to="/login-driver" replace />
   );
 };
 
@@ -135,7 +142,11 @@ const router = createBrowserRouter([
         path: "/root/trucker",
         element: (
           <ProtectedRoute allowedRoles={["track-owner"]}>
-            <TruckerDash />
+            <TruckOwnerTruckProvider>
+              <TruckOwnerDriverProvider>
+                <TruckerDash />
+              </TruckOwnerDriverProvider>
+            </TruckOwnerTruckProvider>
           </ProtectedRoute>
         ),
       },
@@ -144,7 +155,9 @@ const router = createBrowserRouter([
         path: "/root/driver", // New route for driver dashboard
         element: (
           <DriverProtectedRoute allowedRoles={["driver"]}>
-            <DriverDashboard />
+            <DriverDeliveryProvider>
+              <DriverDashboard />
+            </DriverDeliveryProvider>
           </DriverProtectedRoute>
         ),
       },
@@ -165,11 +178,16 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      
      {
         path: "/root/cargo-mover",
         element: (
           <ProtectedRoute allowedRoles={["cargo-mover"]}>
-            <CargoMoverDash />
+            <CargoMoverDeliveryProvider>
+              <CargoMoverDriverProvider>
+                <CargoMoverDash />
+              </CargoMoverDriverProvider>
+            </CargoMoverDeliveryProvider>
           </ProtectedRoute>
         ),
       },
@@ -228,24 +246,7 @@ const router = createBrowserRouter([
         ),
       },
 
-      // driver paths
-        {
-        path: "/root/driver",
-        element: (
-          <ProtectedRoute allowedRoles={["driver"]}>
-            <DriverDashboard />
-          </ProtectedRoute>
-        ),
-      },
-
-      {
-        path:"/root/driver",
-        element:(
-          <ProtectedRoute allowedRoles={["driver"]}>
-            <DriverProfile />
-          </ProtectedRoute>
-        )
-      }
+      
     ],
   },
 ]);

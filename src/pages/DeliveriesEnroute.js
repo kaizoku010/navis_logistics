@@ -16,7 +16,7 @@ function DeliveriesEnroute() {
   useEffect(() => {
     if (user && deliveries.length > 0) {
       const filtered = deliveries.filter(d => 
-        d.company === user.company && (d.status === 'in_transit' || d.status === 'en_route')
+        d.acceptedBy === user.company && (d.status === 'in_transit' || d.status === 'en_route')
       );
       setEnrouteDeliveries(filtered);
       // Set the first delivery as selected by default
@@ -47,6 +47,19 @@ function DeliveriesEnroute() {
     truckId: delivery.truckId,
   }));
 
+  const driverLocations = enrouteDeliveries.map(delivery => {
+    const driver = getDriverForDelivery(delivery.driverId);
+    if (driver && driver.currentLatitude && driver.currentLongitude) {
+      return {
+        lat: driver.currentLatitude,
+        lng: driver.currentLongitude,
+        title: delivery.name,
+        imageUrl: driver.imageUrl
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
   const selectedDriver = selectedDelivery ? getDriverForDelivery(selectedDelivery.driverId) : null;
   const driverLocation = selectedDriver && selectedDriver.currentLatitude && selectedDriver.currentLongitude ? {
     lat: selectedDriver.currentLatitude,
@@ -65,7 +78,7 @@ function DeliveriesEnroute() {
           <NewMap 
             allRoutes={mapRoutes}
             selectedRoute={selectedDelivery ? mapRoutes.find(r => r.uid === selectedDelivery.id) : null}
-            driverCurrentLocation={driverLocation}
+            driverLocations={driverLocations}
           />
         </Card>
       </Col>

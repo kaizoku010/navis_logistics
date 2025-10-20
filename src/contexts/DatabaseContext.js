@@ -258,12 +258,14 @@ export const DatabaseProvider = ({ children }) => {
     useEffect(() => {
         const unsubscribeDrivers = fetchDriversFromAPI();
         const unsubscribeTrucks = fetchTrucksFromAPI();
+        const unsubscribeDeliveries = fetchDeliveriesFromAPI();
 
         return () => {
             unsubscribeDrivers();
             unsubscribeTrucks();
+            unsubscribeDeliveries();
         };
-    }, [fetchDriversFromAPI, fetchTrucksFromAPI]); 
+    }, [fetchDriversFromAPI, fetchTrucksFromAPI, fetchDeliveriesFromAPI]); 
 
     const value = {
         drivers,
