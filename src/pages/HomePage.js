@@ -12,7 +12,7 @@ function HomePage() {
 <TopContent/>
     </div>
     <VersionInfo 
-      version="0.1.0"
+      version="7.4.0"
       status="Under Development"
       lastUpdated="Oct 25, 2024"
     />
