@@ -96,12 +96,50 @@ function CargoMoverDash() {
   const pendingShipments = cargoMoverDeliveries.filter(d => d.status === 'pending').length;
   const completedShipments = cargoMoverDeliveries.filter(d => d.status === 'delivered').length;
 
-  const { xAxisData: deliveriesXAxis, seriesData: deliveriesSeries } = aggregateDataWeekly(cargoMoverDeliveries, user?.company);
-  const { xAxisData: requestsXAxis, seriesData: requestsSeries } = aggregateDataWeekly(nonUserDeliveries, user?.company);
+  // Generate real metrics from actual delivery data
+  const generateGraphMetrics = () => {
+    console.log('All deliveries:', cargoMoverDeliveries);
+    
+    // Check if we have any deliveries at all
+    if (cargoMoverDeliveries.length === 0) {
+      return {
+        xAxisData: ['No Data'],
+        deliveriesData: [0],
+        requestsData: [0]
+      };
+    }
 
-  const graphXAxisData = deliveriesXAxis;
-  const graphDeliveriesData = deliveriesSeries;
-  const graphRequestsData = requestsSeries;
+    // Always show current status breakdown - this is real data
+    return {
+      xAxisData: ['Pending', 'Active', 'Completed', 'Total'],
+      deliveriesData: [
+        Number(pendingShipments) || 0, 
+        Number(activeDeliveries.length) || 0, 
+        Number(completedShipments) || 0,
+        Number(totalShipments) || 0
+      ],
+      requestsData: [
+        Number(pendingShipments) || 0,
+        0,
+        Number(completedShipments) || 0,
+        Number(pendingShipments + completedShipments) || 0
+      ]
+    };
+  };
+
+  const { xAxisData: graphXAxisData, deliveriesData: graphDeliveriesData, requestsData: graphRequestsData } = generateGraphMetrics();
+  
+  console.log('Real Graph Metrics:', { 
+    xAxis: graphXAxisData, 
+    deliveries: graphDeliveriesData, 
+    requests: graphRequestsData,
+    rawData: {
+      totalShipments,
+      activeDeliveries: activeDeliveries.length,
+      pendingShipments,
+      completedShipments
+    }
+  });
 
   const isLoading = loadingCompanyDeliveries || loadingCompanyDrivers;
 
@@ -140,13 +178,13 @@ function CargoMoverDash() {
                 <Graph xAxisData={graphXAxisData} deliveriesData={graphDeliveriesData} requestsData={graphRequestsData}/>
               </CardContent>
             </Card>
-            <Card>
+            {/* <Card>
               <CardContent>
                 <div style={{ height: '500px', width: '100%' }}>
                   <NewMap allRoutes={activeDeliveries} driverLocations={driverLocations} />
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </Stack>
         </Grid>
 

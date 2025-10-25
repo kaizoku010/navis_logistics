@@ -71,9 +71,9 @@ export default function Root() {
                 <li>
                   <Link to="shipments">Shipments</Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link to="tracks">All Trucks</Link>
-                </li>
+                </li> */}
               </>
             )}
 

@@ -164,15 +164,26 @@ return <div className='truck-owner-dash-des'>
 <div className='truck-owner-top-content'>
 <div className='truck-owner-div-left'>
   <GuyBanner company={user?.company}/>
-  <Graph/>
-  <div style={{ display: 'flex', marginTop: '20px' }}>
-    <div style={{ height: '500px', width: '70%' }}>
-      <NewMap allRoutes={mapRoutes} driverLocations={driverLocations} truckLocations={truckLocations} />
-    </div>
-    <div style={{ width: '30%' }}>
-      <ActiveDeliveriesList deliveries={activeDeliveries} />
-    </div>
-  </div>
+  <Graph 
+    xAxisData={[1, 2, 3, 4, 5, 6]}
+    deliveriesData={[
+      1,
+      2,
+      3,
+      getSortedDeliveriesByCompany().length || 4,
+      getSortedDeliveriesByCompany().length || 5,
+      getSortedDeliveriesByCompany().length || 5
+    ]}
+    requestsData={[
+      0,
+      1,
+      pendingDeliveriesCompany().length || 2,
+      pendingDeliveriesCompany().length || 2,
+      pendingDeliveriesCompany().length || 2,
+      pendingDeliveriesCompany().length || 2
+    ]}
+  />
+
 </div>
 <div className='truck-owner-boxes'>
   <IconBox 

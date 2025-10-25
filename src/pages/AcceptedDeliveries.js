@@ -1,21 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
-import NewMap from './NewMap'; // Adjust the import path as necessary
+import DeliveryTrackingMap from './DeliveryTrackingMap'; // NEW unique map component
 import './accepted_deliveries.css';
-import { Card, List, Button, Pagination, Spin, Descriptions } from 'antd';
+import { Card, List, Button, Pagination, Spin, Descriptions, Tabs, Badge, Tag } from 'antd';
+import { 
+  CheckCircleOutlined, 
+  ClockCircleOutlined, 
+  SyncOutlined, 
+  CloseCircleOutlined,
+  EnvironmentOutlined 
+} from '@ant-design/icons';
 
 const AcceptedDeliveries = () => {
   const { deliveries, trucks, assignments, loading, fetchDeliveriesFromAPI, fetchTrucksFromAPI, fetchAssignmentsFromAPI } = useDatabase();
   const { user } = useAuth();
-  const [allRoutesData, setAllRoutesData] = useState([]); // New state for all routes
-  const [selectedDelivery, setSelectedDelivery] = useState(null); // Keep for single route display
+  const [allRoutesData, setAllRoutesData] = useState([]);
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5); // You can adjust this number
+  const [itemsPerPage] = useState(5);
+  const [activeTab, setActiveTab] = useState('all');
 
+  // Filter deliveries by status
+  const filterDeliveriesByStatus = (status) => {
+    if (status === 'all') return allRoutesData;
+    if (status === 'accepted') return allRoutesData.filter(d => d.status === 'accepted');
+    if (status === 'pending') return allRoutesData.filter(d => d.status === 'pending');
+    if (status === 'ongoing') return allRoutesData.filter(d => d.status === 'active' || d.status === 'in_transit' || d.status === 'assigned');
+    if (status === 'completed') return allRoutesData.filter(d => d.status === 'completed' || d.status === 'delivered');
+    if (status === 'failed') return allRoutesData.filter(d => d.status === 'failed' || d.status === 'cancelled' || d.status === 'declined');
+    return allRoutesData;
+  };
+
+  const filteredDeliveries = filterDeliveriesByStatus(activeTab);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = allRoutesData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredDeliveries.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Count deliveries by status
+  const acceptedCount = allRoutesData.filter(d => d.status === 'accepted').length;
+  const pendingCount = allRoutesData.filter(d => d.status === 'pending').length;
+  const ongoingCount = allRoutesData.filter(d => d.status === 'active' || d.status === 'in_transit' || d.status === 'assigned').length;
+  const completedCount = allRoutesData.filter(d => d.status === 'completed' || d.status === 'delivered').length;
+  const failedCount = allRoutesData.filter(d => d.status === 'failed' || d.status === 'cancelled' || d.status === 'declined').length;
 
   // Fetch all necessary data on component mount
   useEffect(() => {
@@ -56,89 +83,126 @@ const AcceptedDeliveries = () => {
     setSelectedDelivery(delivery);
   };
 
+  // Get status color and icon
+  const getStatusTag = (status) => {
+    const statusMap = {
+      'accepted': { color: 'blue', icon: <CheckCircleOutlined />, text: 'Accepted' },
+      'pending': { color: 'orange', icon: <ClockCircleOutlined />, text: 'Pending' },
+      'active': { color: 'cyan', icon: <SyncOutlined spin />, text: 'Active' },
+      'in_transit': { color: 'cyan', icon: <SyncOutlined spin />, text: 'In Transit' },
+      'assigned': { color: 'cyan', icon: <SyncOutlined spin />, text: 'Assigned' },
+      'completed': { color: 'green', icon: <CheckCircleOutlined />, text: 'Completed' },
+      'delivered': { color: 'green', icon: <CheckCircleOutlined />, text: 'Delivered' },
+      'failed': { color: 'red', icon: <CloseCircleOutlined />, text: 'Failed' },
+      'cancelled': { color: 'red', icon: <CloseCircleOutlined />, text: 'Cancelled' },
+      'declined': { color: 'red', icon: <CloseCircleOutlined />, text: 'Declined' },
+    };
+    const statusInfo = statusMap[status] || { color: 'default', icon: null, text: status };
+    return <Tag color={statusInfo.color} icon={statusInfo.icon}>{statusInfo.text}</Tag>;
+  };
+
+
+  // Tab items
+  const tabItems = [
+    {
+      key: 'all',
+      label: <span><Badge count={allRoutesData.length} showZero>All</Badge></span>,
+    },
+    {
+      key: 'accepted',
+      label: <span><Badge count={acceptedCount} showZero>Accepted</Badge></span>,
+    },
+    {
+      key: 'pending',
+      label: <span><Badge count={pendingCount} showZero>Pending</Badge></span>,
+    },
+    {
+      key: 'ongoing',
+      label: <span><Badge count={ongoingCount} showZero>Ongoing</Badge></span>,
+    },
+    {
+      key: 'completed',
+      label: <span><Badge count={completedCount} showZero>Completed</Badge></span>,
+    },
+    {
+      key: 'failed',
+      label: <span><Badge count={failedCount} showZero>Failed</Badge></span>,
+    },
+  ];
+
   return (
     <div className='map_section_div'>
       <div className='accepted_deliveries_list'>
         {loading ? (
           <Spin tip="Loading deliveries..." />
-        ) : allRoutesData.length === 0 ? (
-          <p>No pending/active deliveries found</p>
         ) : (
           <>
-            <List
-                itemLayout="vertical"
-                dataSource={currentItems}
-                renderItem={delivery => (
-                    <List.Item key={delivery.uid}>
-                        <Card
-                            title={delivery.name}
-                            extra={
-                                <Button
-                                    type="primary"
-                                    onClick={() => handleShowRoute(delivery)}
-                                >
-                                    Show Route
-                                </Button>
-                            }
-                        >
-                            <Descriptions column={1} size="small">
-                                <Descriptions.Item label="Contact">{delivery.contact}</Descriptions.Item>
-                                <Descriptions.Item label="Status">{delivery.status}</Descriptions.Item>
-                                {delivery.truckNumberPlate && (
-                                    <Descriptions.Item label="Truck">{delivery.truckNumberPlate}</Descriptions.Item>
-                                )}
-                                <Descriptions.Item label="Pickup">{delivery.pickupPoint}</Descriptions.Item>
-                                <Descriptions.Item label="Destination">{delivery.destination}</Descriptions.Item>
-                            </Descriptions>
-                        </Card>
-                    </List.Item>
-                )}
+            <Tabs 
+              activeKey={activeTab} 
+              onChange={(key) => {
+                setActiveTab(key);
+                setCurrentPage(1);
+              }}
+              items={tabItems}
+              style={{ marginBottom: '20px' }}
             />
-            <Pagination
-                current={currentPage}
-                pageSize={itemsPerPage}
-                total={allRoutesData.length}
-                onChange={(page) => setCurrentPage(page)}
-                showSizeChanger={false}
-                style={{ textAlign: 'center', marginTop: '20px' }}
-            />
+            
+            {filteredDeliveries.length === 0 ? (
+              <p>No {activeTab} deliveries found</p>
+            ) : (
+              <>
+                <List
+                    itemLayout="vertical"
+                    dataSource={currentItems}
+                    renderItem={delivery => (
+                        <List.Item key={delivery.uid}>
+                            <Card
+                                title={delivery.name}
+                                extra={
+                                    <Button
+                                        type="primary"
+                                        icon={<EnvironmentOutlined />}
+                                        onClick={() => handleShowRoute(delivery)}
+                                    >
+                                        Show Route
+                                    </Button>
+                                }
+                            >
+                                <Descriptions column={1} size="small">
+                                    <Descriptions.Item label="Contact">{delivery.contact}</Descriptions.Item>
+                                    <Descriptions.Item label="Status">{getStatusTag(delivery.status)}</Descriptions.Item>
+                                    {delivery.truckNumberPlate && (
+                                        <Descriptions.Item label="Truck">{delivery.truckNumberPlate}</Descriptions.Item>
+                                    )}
+                                    <Descriptions.Item label="Pickup">{delivery.pickupPoint}</Descriptions.Item>
+                                    <Descriptions.Item label="Destination">{delivery.destination}</Descriptions.Item>
+                                </Descriptions>
+                            </Card>
+                        </List.Item>
+                    )}
+                />
+                <Pagination
+                    current={currentPage}
+                    pageSize={itemsPerPage}
+                    total={filteredDeliveries.length}
+                    onChange={(page) => setCurrentPage(page)}
+                    showSizeChanger={false}
+                    style={{ textAlign: 'center', marginTop: '20px' }}
+                />
+              </>
+            )}
           </>
         )}
       </div>
       <div className="maps-dd">
-        {/* Pass allRoutesData to NewMap. NewMap will handle plotting multiple routes */}
         {allRoutesData.length > 0 ? (
-          <NewMap
-            allRoutes={allRoutesData.map(route => {
-              const defaultCoords = { lat: 0, lng: 0 }; // A safe default
-              const pickupLat = Number(route.pickupCoords?.lat?.N || route.pickupCoords?.lat);
-              const pickupLng = Number(route.pickupCoords?.lng?.N || route.pickupCoords?.lng);
-              const destinationLat = Number(route.destinationCoords?.lat?.N || route.destinationCoords?.lat);
-              const destinationLng = Number(route.destinationCoords?.lng?.N || route.destinationCoords?.lng);
-
-              return {
-                pickupCoords: (isNaN(pickupLat) || isNaN(pickupLng)) ? defaultCoords : { lat: pickupLat, lng: pickupLng },
-                destinationCoords: (isNaN(destinationLat) || isNaN(destinationLng)) ? defaultCoords : { lat: destinationLat, lng: destinationLng },
-                truckId: route.truckId,
-              };
-            })}
-            // If a specific delivery is selected from the list, show its route highlighted
-            selectedRoute={selectedDelivery ? (() => {
-              const defaultCoords = { lat: 0, lng: 0 };
-              const pickupLat = Number(selectedDelivery.pickupCoords?.lat?.N);
-              const pickupLng = Number(selectedDelivery.pickupCoords?.lng?.N);
-              const destinationLat = Number(selectedDelivery.destinationCoords?.lat?.N);
-              const destinationLng = Number(selectedDelivery.destinationCoords?.lng?.N);
-
-              return {
-                pickupCoords: (isNaN(pickupLat) || isNaN(pickupLng)) ? defaultCoords : { lat: pickupLat, lng: pickupLng },
-                destinationCoords: (isNaN(destinationLat) || isNaN(destinationLng)) ? defaultCoords : { lat: destinationLat, lng: destinationLng },
-                truckId: selectedDelivery.truckId,
-              };
-            })() : null}
+          <DeliveryTrackingMap
+            deliveries={filteredDeliveries}
+            selectedDelivery={selectedDelivery}
+            onMarkerClick={handleShowRoute}
           />
         ) : (
-          !loading && <div className='no-data'><p className='select-delivery-text'>No pending/active deliveries to show on map.</p></div>
+          !loading && <div className='no-data'><p className='select-delivery-text'>No deliveries to show on map.</p></div>
         )}
       </div>
     </div>

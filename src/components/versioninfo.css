@@ -42,9 +42,9 @@
 }
 
 .version-info-value.status {
-  color: #ff9800;
+  color: white !important;
   font-weight: 500;
-  background: rgba(255, 152, 0, 0.1);
+  background-color: blue !important;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 12px;
