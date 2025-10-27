@@ -17,7 +17,7 @@ import './versioninfo.css';
 />
  */
 function VersionInfo({ 
-  version = "7.4.0", 
+  version = "7.5.0", 
   status = "Under Development", 
   lastUpdated = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }) {
