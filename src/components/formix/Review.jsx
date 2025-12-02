@@ -12,13 +12,15 @@ const Review = () => {
   const [truckInfo, setTruckInfo] = useState(null);
   const [coords, setCoords] = useState({ pickupCoords: null, destinationCoords: null });
   const [distance, setDistance] = useState(null);
-  const { allTrucks, fetchAllTrucksFromAPI, saveNonUserRequestToAPI, saveDeliveryToAPI } = useDatabase();
+  const { allTrucks, fetchAllTrucksFromAPI, saveNonUserRequestToAPI, saveDeliveryToAPI, fetchAllPricingModelsFromAPI, allPricingModels, getPricingModelByCompany } = useDatabase();
   const [data, setData] = useState();
   const [numberPlate, setNumberPlate] = useState();
   const [company, setCompany] = useState();
   const [loading, setLoading] = useState(false);
   const [requestSaved, setRequestSaved] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const [calculatedPrice, setCalculatedPrice] = useState(null);
+  const [pricingInfo, setPricingInfo] = useState(null);
 
   const memoizedMapCoordinates = useMemo(() => ({
     pickup: coords.pickupCoords,
@@ -34,7 +36,8 @@ const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
 
 useEffect(() => {
     fetchAllTrucksFromAPI().catch(() => setFetchError(true));
-  }, [fetchAllTrucksFromAPI]);
+    fetchAllPricingModelsFromAPI().catch((err) => console.error("Error fetching pricing models:", err));
+  }, [fetchAllTrucksFromAPI, fetchAllPricingModelsFromAPI]);
 
   useEffect(() => {
     const getTruckInfo = async () => {
@@ -92,6 +95,33 @@ useEffect(() => {
     if (!distance || !truck.speed) return "N/A";
     return distance / truck.speed; // Calculate time in hours
   };
+
+  // Calculate price based on truck owner's pricing model
+  useEffect(() => {
+    if (company && (distance || address.weight)) {
+      const pricingModel = getPricingModelByCompany(company);
+      if (pricingModel) {
+        setPricingInfo(pricingModel);
+        let price = 0;
+
+        // Add distance-based price
+        if (pricingModel.ratePerKm && distance) {
+          price += pricingModel.ratePerKm * distance;
+        }
+
+        // Add weight-based price
+        if (pricingModel.ratePerTon && address.weight) {
+          const weightInTons = Number(address.weight) / 1000;
+          price += pricingModel.ratePerTon * weightInTons;
+        }
+
+        setCalculatedPrice(Math.round(price));
+      } else {
+        setPricingInfo(null);
+        setCalculatedPrice(null);
+      }
+    }
+  }, [company, distance, address.weight, getPricingModelByCompany, allPricingModels]);
 
   useEffect(() => {
     const fetchCoordinates = async (address) => {
@@ -178,7 +208,12 @@ useEffect(() => {
         weight: String(address.weight),
         plateNumber:numberPlate,
         status:"pending",
-        date:formattedDate
+        date:formattedDate,
+        // Add pricing information
+        distance: distance ? Math.round(distance * 100) / 100 : null,
+        calculatedPrice: calculatedPrice,
+        ratePerKm: pricingInfo?.ratePerKm || null,
+        ratePerTon: pricingInfo?.ratePerTon || null
       };
 
       await saveDeliveryToAPI(data);
@@ -274,6 +309,29 @@ useEffect(() => {
                   <p className="text-dets">Car Load:<span className="text-dets-span">{truckInfo.load}</span></p>
                   <p className="text-dets">Speed:<span className="text-dets-span">{truckInfo.speed} </span></p>
                   <p className="text-dets">Year Of Manufacture: <span className="text-dets-span">{truckInfo.yearOfManufacture}</span></p>
+
+                  {/* Price Information */}
+                  {distance && (
+                    <p className="text-dets">Distance: <span className="text-dets-span">{Math.round(distance * 100) / 100} km</span></p>
+                  )}
+                  {calculatedPrice !== null ? (
+                    <div className="price-info-section">
+                      <h3 className="price-label">Estimated Price:</h3>
+                      <p className="calculated-price">UGX {calculatedPrice.toLocaleString()}</p>
+                      <p className="price-breakdown">
+                        {pricingInfo?.ratePerKm > 0 && distance && (
+                          <span>{pricingInfo.ratePerKm.toLocaleString()} UGX/km × {Math.round(distance * 100) / 100} km</span>
+                        )}
+                        {pricingInfo?.ratePerKm > 0 && pricingInfo?.ratePerTon > 0 && ' + '}
+                        {pricingInfo?.ratePerTon > 0 && address.weight && (
+                          <span>{pricingInfo.ratePerTon.toLocaleString()} UGX/ton × {(Number(address.weight) / 1000).toFixed(2)} tons</span>
+                        )}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-dets price-note">Price will be determined by the truck owner</p>
+                  )}
+
                   <img className="front-page" src={truckInfo.imageUrl} alt="navis trucks" />
                 </div>
               </>

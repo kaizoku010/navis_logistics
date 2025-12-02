@@ -18,6 +18,7 @@ import {
     getDoc,
     updateDoc,
     deleteDoc,
+    setDoc,
     onSnapshot,
     FieldValue // Added FieldValue
 } from 'firebase/firestore'; // Correct import path for Firestore functions
@@ -45,12 +46,13 @@ export const firebaseClient = {
       let docRef;
       if (documentId) {
         const docRefInstance = doc(firestore, collectionName, documentId);
-        await updateDoc(docRefInstance, documentData);
+        // Use setDoc with merge:true to create OR update the document
+        await setDoc(docRefInstance, documentData, { merge: true });
         docRef = { id: documentId };
       } else {
         docRef = await addDoc(collection(firestore, collectionName), documentData);
       }
-      
+
       return { success: true, id: docRef.id };
     } catch (error) {
       console.error(`Error saving to Firestore collection ${collectionName}:`, error.message);

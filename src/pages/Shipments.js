@@ -274,7 +274,27 @@ const Shipments = () => {
               >
                 <ListItemText
                   primary={`Type: ${delivery.name}`}
-                  secondary={`Weight: ${delivery.weight}kg - ${delivery.pickupPoint} to ${delivery.destination}`}
+                  secondary={
+                    <>
+                      {`Weight: ${delivery.weight}kg - ${delivery.pickupPoint} to ${delivery.destination}`}
+                      {delivery.calculatedPrice && (
+                        <span style={{ display: 'block', color: '#1976d2', fontWeight: 'bold', marginTop: '4px' }}>
+                          Cost: UGX {Number(delivery.calculatedPrice).toLocaleString()}
+                          {delivery.distance && ` (${delivery.distance} km)`}
+                        </span>
+                      )}
+                      <span style={{ display: 'block', marginTop: '2px' }}>
+                        Status: <span style={{
+                          color: delivery.status === 'pending' ? '#ff9800' :
+                                 delivery.status === 'delivered' ? '#4caf50' : '#2196f3',
+                          fontWeight: 500
+                        }}>
+                          {delivery.status?.toUpperCase()}
+                        </span>
+                        {delivery.acceptedBy && ` • Carrier: ${delivery.acceptedBy}`}
+                      </span>
+                    </>
+                  }
                 />
               </ListItem>
             ))}

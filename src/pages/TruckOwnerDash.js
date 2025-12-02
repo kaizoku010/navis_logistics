@@ -1,24 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import "./TruckOwnerDash.css"
-import GuyBanner from '../components/GuyBanner';
-import IconBox from '../components/IconBox';
-import ActiveDeliveriesList from '../components/ActiveDeliveriesList';
 import Graph from '../components/Graph';
 import Search from '../components/Search';
-import NewMap from './NewMap'; // Import NewMap
 import { useAuth } from '../contexts/AuthContext';
 import { useDatabase } from '../contexts/DatabaseContext';
-import { useTruckOwnerTrucks } from '../contexts/TruckOwnerTruckContext'; // Import TruckOwnerTruckContext
-import { useTruckOwnerDrivers } from '../contexts/TruckOwnerDriverContext'; // Import TruckOwnerDriverContext
-import DriverIc from "../assets/drv.png"
+import { useTruckOwnerTrucks } from '../contexts/TruckOwnerTruckContext';
+import { useTruckOwnerDrivers } from '../contexts/TruckOwnerDriverContext';
 import Trucks from  "../assets/vv.png"
-import { Box, CircularProgress } from '@mui/material'; // Import Box and CircularProgress
+import { Box, CircularProgress } from '@mui/material';
 
 function TruckOwnerDash() {
   const { user } = useAuth();
-  const { nonUserDeliveries, deliveries } = useDatabase();
+  const { nonUserDeliveries, deliveries, fetchPricingModelFromAPI, pricingModel } = useDatabase();
   const { companyTrucks, loadingCompanyTrucks } = useTruckOwnerTrucks();
   const { companyDrivers, loadingCompanyDrivers } = useTruckOwnerDrivers();
+
+  // Fetch pricing model for the company
+  useEffect(() => {
+    if (user?.company) {
+      fetchPricingModelFromAPI(user.company);
+    }
+  }, [user?.company, fetchPricingModelFromAPI]);
 
 
 
@@ -82,11 +84,77 @@ const getSortedtrucksByCompany = () => {
 
   const getActiveDeliveriesByCompany = () => {
   if (!deliveries || !user?.company) return [];
-  return deliveries.filter(delivery => 
-    delivery.company?.toLowerCase() === user.company.toLowerCase() &&
-    (delivery.status === 'in_transit' || delivery.status === 'en_route')
+  return deliveries.filter(delivery =>
+    delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() &&
+    (delivery.status === 'in_transit' || delivery.status === 'en_route' || delivery.status === 'active' || delivery.status === 'accepted')
   );
 };
+
+  // Calculate income from deliveries
+  const calculateIncomeFromDeliveries = (deliveriesList, model) => {
+    if (!deliveriesList || deliveriesList.length === 0 || !model) {
+      return 0;
+    }
+
+    return deliveriesList.reduce((total, delivery) => {
+      let price = 0;
+
+      // First check if delivery has pre-calculated price
+      if (delivery.calculatedPrice) {
+        const calcPrice = Number(delivery.calculatedPrice);
+        if (!isNaN(calcPrice)) {
+          return total + calcPrice;
+        }
+      }
+
+      // Fallback: calculate based on pricing model (distance + weight)
+      // Add distance-based price
+      if (model.ratePerKm && delivery.distance) {
+        const distanceValue = Number(delivery.distance);
+        if (!isNaN(distanceValue)) {
+          price += model.ratePerKm * distanceValue;
+        }
+      }
+
+      // Add weight-based price (weight is in kg, convert to tons)
+      if (model.ratePerTon && delivery.weight) {
+        const weightValue = Number(delivery.weight);
+        if (!isNaN(weightValue) && weightValue > 0) {
+          const weightInTons = weightValue / 1000;
+          price += model.ratePerTon * weightInTons;
+        }
+      }
+
+      return total + price;
+    }, 0);
+  };
+
+  // Income calculations using useMemo for performance
+  const activeRoutesIncome = useMemo(() => {
+    if (!pricingModel) return 0;
+    const activeDeliveries = getActiveDeliveriesByCompany();
+    return calculateIncomeFromDeliveries(activeDeliveries, pricingModel);
+  }, [deliveries, user?.company, pricingModel]);
+
+  const completedRoutesIncome = useMemo(() => {
+    if (!pricingModel) return 0;
+    const completed = completedDeliveriesByCompany();
+    return calculateIncomeFromDeliveries(completed, pricingModel);
+  }, [nonUserDeliveries, user?.company, pricingModel]);
+
+  const pendingRoutesIncome = useMemo(() => {
+    if (!pricingModel) return 0;
+    const pending = deliveries.filter(delivery =>
+      delivery.company?.toLowerCase() === user?.company?.toLowerCase() &&
+      delivery.status === 'pending'
+    );
+    return calculateIncomeFromDeliveries(pending, pricingModel);
+  }, [deliveries, user?.company, pricingModel]);
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return `UGX ${Math.round(amount).toLocaleString()}`;
+  };
 
   const truckLocations = companyTrucks.map(truck => {
     if (truck.currentLatitude && truck.currentLongitude) {
@@ -145,83 +213,155 @@ useEffect(() => {
     );
   }
 
-return <div className='truck-owner-dash-des'>
+return (
+  <div className='trucker-dash'>
+    {/* Header */}
+    <div className='trucker-header'>
+      <Search/>
+      <div className='trucker-user-info'>
+        <div className='trucker-user-text'>
+          <p className='trucker-user-name'>{user?.username}</p>
+          <p className='trucker-user-company'>{user?.company}</p>
+        </div>
+        <img className='trucker-user-avatar' src={user?.imageUrl} alt="User profile" />
+      </div>
+    </div>
 
-<div className='truck-owner-header truck-owner-card'>
-<Search/>
-<div className='truck-owner-name_user_image'>
-  <div className='truck-owner-user_info_'>
-   <p className='truck-owner-userName'>{user?.username}</p>
-  <p className='truck-owner-userComp_'>{user?.company}</p>  
+    {/* Welcome Banner */}
+    <div className='trucker-welcome'>
+      <div className='trucker-welcome-content'>
+        <span className='trucker-welcome-badge'>Dashboard Overview</span>
+        <h2 className='trucker-welcome-title'>Welcome back, {user?.username?.split(' ')[0] || 'Trucker'}! 👋</h2>
+        <p className='trucker-welcome-text'>
+          You have <strong>{getActiveDeliveriesByCompany().length}</strong> active deliveries and <strong>{pendingDeliveriesCompany().length}</strong> pending requests today.
+        </p>
+      </div>
+      <div className='trucker-welcome-stats'>
+        <div className='trucker-stat-mini'>
+          <i className="fi fi-rr-truck-moving"></i>
+          <span>{getSortedtrucksByCompany().length} Trucks</span>
+        </div>
+        <div className='trucker-stat-mini'>
+          <i className="fi fi-rr-user"></i>
+          <span>{getSortedDriversByCompany().length} Drivers</span>
+        </div>
+      </div>
+    </div>
 
+    {/* Income Cards Row */}
+    <div className='trucker-income-row'>
+      <div className='trucker-income-card active'>
+        <div className='trucker-income-icon'>
+          <i className="fi fi-rr-route"></i>
+        </div>
+        <div className='trucker-income-info'>
+          <span className='trucker-income-label'>Active Routes</span>
+          <span className='trucker-income-value'>{formatCurrency(activeRoutesIncome || 0)}</span>
+          <span className='trucker-income-count'>{getActiveDeliveriesByCompany().length} deliveries</span>
+        </div>
+      </div>
+      <div className='trucker-income-card completed'>
+        <div className='trucker-income-icon'>
+          <i className="fi fi-rr-badge-check"></i>
+        </div>
+        <div className='trucker-income-info'>
+          <span className='trucker-income-label'>Completed</span>
+          <span className='trucker-income-value'>{formatCurrency(completedRoutesIncome || 0)}</span>
+          <span className='trucker-income-count'>{completedDeliveriesByCompany().length} deliveries</span>
+        </div>
+      </div>
+      <div className='trucker-income-card pending'>
+        <div className='trucker-income-icon'>
+          <i className="fi fi-rr-hourglass-end"></i>
+        </div>
+        <div className='trucker-income-info'>
+          <span className='trucker-income-label'>Potential</span>
+          <span className='trucker-income-value'>{formatCurrency(pendingRoutesIncome || 0)}</span>
+          <span className='trucker-income-count'>{pendingDeliveriesCompany().length} pending</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Main Content */}
+    <div className='trucker-main'>
+      {/* Left - Graph */}
+      <div className='trucker-graph-section'>
+        <div className='trucker-section-header'>
+          <h3>Performance Overview</h3>
+        </div>
+        <div className='trucker-graph-wrapper'>
+          <Graph
+            xAxisData={[1, 2, 3, 4, 5, 6]}
+            deliveriesData={[
+              1, 2, 3,
+              getSortedDeliveriesByCompany().length || 4,
+              getSortedDeliveriesByCompany().length || 5,
+              getSortedDeliveriesByCompany().length || 5
+            ]}
+            requestsData={[
+              0, 1,
+              pendingDeliveriesCompany().length || 2,
+              pendingDeliveriesCompany().length || 2,
+              pendingDeliveriesCompany().length || 2,
+              pendingDeliveriesCompany().length || 2
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Right - Stats Grid */}
+      <div className='trucker-stats-section'>
+        <div className='trucker-section-header'>
+          <h3>Quick Stats</h3>
+        </div>
+        <div className='trucker-stats-grid'>
+          <div className='trucker-stat-card'>
+            <i className="fi fi-rr-check-circle"></i>
+            <div className='trucker-stat-info'>
+              <span className='trucker-stat-number'>{getSortedDeliveriesByCompany().length}</span>
+              <span className='trucker-stat-label'>Accepted</span>
+            </div>
+          </div>
+          <div className='trucker-stat-card'>
+            <i className="fi fi-rr-time-fast"></i>
+            <div className='trucker-stat-info'>
+              <span className='trucker-stat-number'>{pendingDeliveriesCompany().length}</span>
+              <span className='trucker-stat-label'>Pending</span>
+            </div>
+          </div>
+          <div className='trucker-stat-card'>
+            <i className="fi fi-rr-badge-check"></i>
+            <div className='trucker-stat-info'>
+              <span className='trucker-stat-number'>{completedDeliveriesByCompany().length}</span>
+              <span className='trucker-stat-label'>Completed</span>
+            </div>
+          </div>
+          <div className='trucker-stat-card'>
+            <i className="fi fi-rr-truck-moving"></i>
+            <div className='trucker-stat-info'>
+              <span className='trucker-stat-number'>{getActiveDeliveriesByCompany().length}</span>
+              <span className='trucker-stat-label'>Active</span>
+            </div>
+          </div>
+          <div className='trucker-stat-card highlight'>
+            <i className="fi fi-rr-user"></i>
+            <div className='trucker-stat-info'>
+              <span className='trucker-stat-number'>{getSortedDriversByCompany().length}</span>
+              <span className='trucker-stat-label'>Drivers</span>
+            </div>
+          </div>
+          <div className='trucker-stat-card highlight'>
+            <i className="fi fi-rr-shipping-fast"></i>
+            <div className='trucker-stat-info'>
+              <span className='trucker-stat-number'>{getSortedtrucksByCompany().length}</span>
+              <span className='trucker-stat-label'>Trucks</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
- 
-
-  <img className='truck-owner-userImage' src={user?.imageUrl} alt="User profile" />
-</div>
-</div>
-{/* others */}
-<div className='truck-owner-top-content'>
-<div className='truck-owner-div-left'>
-  <GuyBanner company={user?.company}/>
-  <Graph 
-    xAxisData={[1, 2, 3, 4, 5, 6]}
-    deliveriesData={[
-      1,
-      2,
-      3,
-      getSortedDeliveriesByCompany().length || 4,
-      getSortedDeliveriesByCompany().length || 5,
-      getSortedDeliveriesByCompany().length || 5
-    ]}
-    requestsData={[
-      0,
-      1,
-      pendingDeliveriesCompany().length || 2,
-      pendingDeliveriesCompany().length || 2,
-      pendingDeliveriesCompany().length || 2,
-      pendingDeliveriesCompany().length || 2
-    ]}
-  />
-
-</div>
-<div className='truck-owner-boxes'>
-  <IconBox 
-   iconClass="fi fi-rr-route" 
-  number={getSortedDeliveriesByCompany().length} title={"Accepted Deliveries "}/>
-  <IconBox
-  iconClass="fi fi-rr-car-journey"
-  number={pendingDeliveriesCompany().length} title={"Pending Deliveries"}/>
-  <IconBox
-  iconClass="fi fi-br-train-journey"
-  number={completedDeliveriesByCompany().length} title={"Completed Deliveries"} />
-  <IconBox
-  iconClass="fi fi-sr-vote-nay"
-  number={declinedDeliveriesByCompany().length} title={"Active Deliveries"}/>
-<IconBox
-iconClass="i fi-ss-driver-man"
-backgroundImage={DriverIc} number={getSortedDriversByCompany().length} title={"Number Of Drivers"}/>
-<IconBox
-iconClass="fi fi-ss-shipping-fast"
-backgroundImage={Trucks} number={getSortedtrucksByCompany().length} title={"Number of Trucks"}/>
-
-</div>
-</div>
-{/* <div className='lower_dash card'> 
-
-  <div className='lower_div_element'>
-    <OrderStats/>
-  </div>
-  <div className='lower_div_element'>
-  <IncomeStats/>
-
-  </div>
-  <div className='lower_div_element'>
-<Transactions/>
-  </div>
-</div> */}
-
-  </div>;
+);
 }
 
 export default TruckOwnerDash;

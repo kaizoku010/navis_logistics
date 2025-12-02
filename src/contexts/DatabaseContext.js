@@ -16,6 +16,9 @@ export const DatabaseProvider = ({ children }) => {
     const [nonUserDeliveries, setNonUserDeliveries] = useState([]);
     const [loading, setLoading] = useState(false);
     const [deliveriesLoading, setDeliveriesLoading] = useState(false);
+    const [pricingModel, setPricingModel] = useState(null);
+    const [pricingModelLoading, setPricingModelLoading] = useState(false);
+    const [allPricingModels, setAllPricingModels] = useState([]);
 
     const fetchDriversFromAPI = useCallback(() => {
         setLoading(true);
@@ -158,7 +161,7 @@ export const DatabaseProvider = ({ children }) => {
         return result;
     }, []);
 
-    const updateDeliveryStatusForDeliveryCollectionInAPI = useCallback(async (deliveryId, status, acceptedBy, truckId, driverId, startTime = null, endTime = null, totalDuration = null) => {
+    const updateDeliveryStatusForDeliveryCollectionInAPI = useCallback(async (deliveryId, status, acceptedBy, truckId, driverId, startTime = null, endTime = null, totalDuration = null, pricingData = null) => {
         setLoading(true);
         const dataToUpdate = {
             status,
@@ -168,6 +171,13 @@ export const DatabaseProvider = ({ children }) => {
             ...(startTime && { startTime }),
             ...(endTime && { endTime }),
             ...(totalDuration && { totalDuration }),
+            ...(pricingData && {
+                calculatedPrice: pricingData.calculatedPrice,
+                distance: pricingData.distance,
+                ratePerKm: pricingData.ratePerKm,
+                ratePerTon: pricingData.ratePerTon,
+                acceptedAt: new Date().toISOString(),
+            }),
         };
 
         const result = await firebaseClient.updateInFirestore('deliveries', deliveryId, dataToUpdate);
@@ -254,7 +264,66 @@ export const DatabaseProvider = ({ children }) => {
         setLoading(false);
         return result;
     }, []);
-    
+
+    // Pricing Model Functions
+    const savePricingModelToAPI = useCallback(async (pricingData) => {
+        setPricingModelLoading(true);
+        try {
+            // Use company as document ID so each company has only one pricing model
+            const documentId = pricingData.company.toLowerCase().replace(/\s/g, '-');
+            const result = await firebaseClient.saveToFirestore('pricing_models', pricingData, documentId);
+            setPricingModel(pricingData);
+            return result;
+        } catch (error) {
+            console.error("Error saving pricing model:", error);
+            throw error;
+        } finally {
+            setPricingModelLoading(false);
+        }
+    }, []);
+
+    const fetchPricingModelFromAPI = useCallback(async (company) => {
+        setPricingModelLoading(true);
+        try {
+            const documentId = company.toLowerCase().replace(/\s/g, '-');
+            const result = await firebaseClient.getFromFirestore('pricing_models', documentId);
+            if (result) {
+                setPricingModel(result);
+            } else {
+                setPricingModel(null);
+            }
+            return result;
+        } catch (error) {
+            console.error("Error fetching pricing model:", error);
+            setPricingModel(null);
+            return null;
+        } finally {
+            setPricingModelLoading(false);
+        }
+    }, []);
+
+    const fetchAllPricingModelsFromAPI = useCallback(async () => {
+        setPricingModelLoading(true);
+        try {
+            const result = await firebaseClient.getFromFirestore('pricing_models');
+            if (Array.isArray(result)) {
+                setAllPricingModels(result);
+            }
+            return result;
+        } catch (error) {
+            console.error("Error fetching all pricing models:", error);
+            return [];
+        } finally {
+            setPricingModelLoading(false);
+        }
+    }, []);
+
+    const getPricingModelByCompany = useCallback((company) => {
+        if (!company || !allPricingModels.length) return null;
+        const companyId = company.toLowerCase().replace(/\s/g, '-');
+        return allPricingModels.find(pm => pm.id === companyId) || null;
+    }, [allPricingModels]);
+
     useEffect(() => {
         const unsubscribeDrivers = fetchDriversFromAPI();
         const unsubscribeTrucks = fetchTrucksFromAPI();
@@ -276,6 +345,9 @@ export const DatabaseProvider = ({ children }) => {
         nonUserDeliveries,
         loading,
         deliveriesLoading,
+        pricingModel,
+        pricingModelLoading,
+        allPricingModels,
         fetchDriversFromAPI,
         saveDriverDataToAPI,
         fetchTrucksFromAPI,
@@ -287,13 +359,17 @@ export const DatabaseProvider = ({ children }) => {
         saveDeliveryToAPI,
         fetchNonUserDeliveriesFromAPI,
         saveNonUserRequestToAPI,
-        updateDriverLocationInAPI, // Added
+        updateDriverLocationInAPI,
         updateDeliveryStatusInAPI,
-        updateDeliveryStatusForDeliveryCollectionInAPI, // Corrected
-        declineDelivery, // Added
+        updateDeliveryStatusForDeliveryCollectionInAPI,
+        declineDelivery,
         deleteDriver,
         deleteTruck,
-        updateDriver
+        updateDriver,
+        savePricingModelToAPI,
+        fetchPricingModelFromAPI,
+        fetchAllPricingModelsFromAPI,
+        getPricingModelByCompany
     };
 
     return (

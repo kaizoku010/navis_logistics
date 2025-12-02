@@ -16,11 +16,11 @@ const containerStyle = {
 const API_KEY = process.env.REACT_APP_MAPS_API_KEY; // Your API Key
 
 function Deliveries() {
-  const { 
-    deliveries, 
-    deliveriesLoading, 
-    fetchDeliveriesFromAPI, 
-    updateDeliveryStatusForDeliveryCollectionInAPI, 
+  const {
+    deliveries,
+    deliveriesLoading,
+    fetchDeliveriesFromAPI,
+    updateDeliveryStatusForDeliveryCollectionInAPI,
     declineDelivery: declineDeliveryInDB,
     trucks,
     drivers,
@@ -28,6 +28,8 @@ function Deliveries() {
     fetchDriversFromAPI,
     saveAssignmentToAPI,
     updateDriver,
+    pricingModel,
+    fetchPricingModelFromAPI,
   } = useDatabase();
   const { user, loading: authLoading } = useAuth();
   const [selectedDelivery, setSelectedDelivery] = useState(null);
@@ -38,14 +40,36 @@ function Deliveries() {
   const [filteredStatus, setFilteredStatus] = useState(null);
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
+  const [calculatedDistance, setCalculatedDistance] = useState(null);
 
   useEffect(() => {
     if (!authLoading && user?.company) {
       fetchDeliveriesFromAPI();
       fetchTrucksFromAPI();
       fetchDriversFromAPI();
+      fetchPricingModelFromAPI();
     }
-  }, [fetchDeliveriesFromAPI, fetchTrucksFromAPI, fetchDriversFromAPI, authLoading, user?.company]);
+  }, [fetchDeliveriesFromAPI, fetchTrucksFromAPI, fetchDriversFromAPI, fetchPricingModelFromAPI, authLoading, user?.company]);
+
+  // Calculate price based on weight and distance
+  const calculatePrice = useCallback((weight, distance) => {
+    if (!pricingModel) return 0;
+
+    let price = 0;
+
+    // Rate per km
+    if (pricingModel.ratePerKm && distance) {
+      price += pricingModel.ratePerKm * (Number(distance) || 0);
+    }
+
+    // Rate per ton (weight is in kg, convert to tons)
+    if (pricingModel.ratePerTon && weight) {
+      const weightInTons = (Number(weight) || 0) / 1000;
+      price += pricingModel.ratePerTon * weightInTons;
+    }
+
+    return Math.round(price);
+  }, [pricingModel]);
 
   const filteredDeliveries = React.useMemo(() => {
     if (!user || !user.company || !deliveries) {
@@ -98,11 +122,32 @@ function Deliveries() {
             message.error('User company information is missing.');
             return;
         }
-        await updateDeliveryStatusForDeliveryCollectionInAPI(selectedDelivery.id, "active", user.company, selectedTruck, selectedDriver);
+
+        // Calculate price based on weight and distance
+        const price = calculatePrice(selectedDelivery.weight, calculatedDistance);
+        const pricingData = {
+            calculatedPrice: price,
+            distance: calculatedDistance || 0,
+            ratePerKm: pricingModel?.ratePerKm || 0,
+            ratePerTon: pricingModel?.ratePerTon || 0,
+        };
+
+        await updateDeliveryStatusForDeliveryCollectionInAPI(
+            selectedDelivery.id,
+            "active",
+            user.company,
+            selectedTruck,
+            selectedDriver,
+            null, // startTime
+            null, // endTime
+            null, // totalDuration
+            pricingData
+        );
         await saveAssignmentToAPI({ deliveryId: selectedDelivery.id, driverId: selectedDriver, truckId: selectedTruck });
         await updateDriver(selectedDriver, { currentTruckId: selectedTruck, currentDeliveryId: selectedDelivery.id });
-        message.success('Delivery accepted and assigned successfully!');
+        message.success(`Delivery accepted! Price: UGX ${price.toLocaleString()}`);
         setIsAssignModalVisible(false);
+        setCalculatedDistance(null);
         fetchDeliveriesFromAPI();
     }
   }
@@ -116,6 +161,12 @@ function Deliveries() {
   const handleDirectionsCallback = useCallback((response) => {
     if (response && response.status === 'OK') {
       setDirectionsResponse(response);
+      // Extract distance in km from the route
+      if (response.routes && response.routes[0] && response.routes[0].legs) {
+        const distanceInMeters = response.routes[0].legs[0].distance.value;
+        const distanceInKm = distanceInMeters / 1000;
+        setCalculatedDistance(Math.round(distanceInKm * 10) / 10); // Round to 1 decimal
+      }
     } else {
       console.error('Directions request failed due to', response ? response.status : 'no response');
     }

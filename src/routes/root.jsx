@@ -89,12 +89,15 @@ export default function Root() {
                   <Link to="truck-management">Fleet</Link>
                 </li>
                 <li>
+                  <Link to="pricing-model">Pricing Model</Link>
+                </li>
+                <li>
                   <Link to="enroute">Trucker Map</Link>
                 </li>
                 <li>
                   <Link to="requests">Pending Deliveries </Link>
                 </li>
-              
+
               </>
             )}
 

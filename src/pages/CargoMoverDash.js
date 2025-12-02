@@ -1,75 +1,29 @@
-// src/pages/Dashboard.js
-import React, { useState, useEffect } from 'react';
-import "./Dashboard.css"
-import GuyBanner from '../components/GuyBanner';
-import IconBox from '../components/IconBox';
+// src/pages/CargoMoverDash.js
+import { useEffect, useMemo } from 'react';
+import "./CargoMoverDash.css"
 import Graph from '../components/Graph';
 import Search from '../components/Search';
-import NewMap from './NewMap'; 
 import { useAuth } from '../contexts/AuthContext';
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useCargoMoverDeliveries } from '../contexts/CargoMoverDeliveryContext';
 import { useCargoMoverDrivers } from '../contexts/CargoMoverDriverContext';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, Typography, Button, Stack, Grid, Box, CircularProgress } from '@mui/material';
-import { Add, ListAlt } from '@mui/icons-material';
+import { Box, CircularProgress } from '@mui/material';
 
-// Helper function to get the start of the week (Sunday)
-const getStartOfWeek = (date) => {
-  const d = new Date(date);
-  const day = d.getDay(); // 0 for Sunday, 1 for Monday, etc.
-  const diff = d.getDate() - day; // Adjust to Sunday
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
-
-// Helper function to aggregate data weekly
-const aggregateDataWeekly = (data, companyId) => {
-  const weeklyCounts = {};
-  data.forEach(item => {
-    if (!item.date || isNaN(new Date(item.date).getTime())) {
-      return; // Skip item if date is invalid
-    }
-
-    if (item.company === companyId) {
-      const weekStart = getStartOfWeek(item.date);
-      const year = weekStart.getFullYear();
-      const month = (weekStart.getMonth() + 1).toString().padStart(2, '0');
-      const day = weekStart.getDate().toString().padStart(2, '0');
-      const weekKey = `${year}-${month}-${day}`;
-      weeklyCounts[weekKey] = (weeklyCounts[weekKey] || 0) + 1;
-    }
-  });
-
-  const sortedWeeks = Object.keys(weeklyCounts).sort();
-  let xAxisData = sortedWeeks.map(week => {
-    const date = new Date(week);
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  });
-  let seriesData = sortedWeeks.map(week => weeklyCounts[week]);
-
-  if (sortedWeeks.length === 1) {
-    const prevWeekDate = new Date(new Date(sortedWeeks[0]).getTime() - 7 * 24 * 60 * 60 * 1000);
-    xAxisData = [`${prevWeekDate.getMonth() + 1}/${prevWeekDate.getDate()}`, xAxisData[0]];
-    seriesData = [0, seriesData[0]];
-  } else if (sortedWeeks.length === 0) {
-    return { xAxisData: [], seriesData: [] };
-  }
-
-  return { xAxisData, seriesData };
-};
+// Default rate for estimating old deliveries without pricing (UGX per ton)
+const DEFAULT_RATE_PER_TON = 1250;
+const DEFAULT_RATE_PER_KM = 500;
 
 function CargoMoverDash() {
   const { user } = useAuth();
-  const { nonUserDeliveries, fetchNonUserDeliveriesFromAPI } = useDatabase(); // Keep nonUserDeliveries if still needed
+  const { fetchNonUserDeliveriesFromAPI } = useDatabase();
   const { companyDeliveries, loadingCompanyDeliveries } = useCargoMoverDeliveries();
-  const { companyDrivers, loadingCompanyDrivers } = useCargoMoverDrivers();
+  const { loadingCompanyDrivers } = useCargoMoverDrivers();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user?.company) {
-      fetchNonUserDeliveriesFromAPI(); // Keep if nonUserDeliveries are still fetched via useDatabase
+      fetchNonUserDeliveriesFromAPI();
     }
   }, [user?.company, fetchNonUserDeliveriesFromAPI]);
 
@@ -77,69 +31,59 @@ function CargoMoverDash() {
     (delivery) => delivery.company === user?.company
   );
 
-  const activeDeliveries = cargoMoverDeliveries.filter(d => d.status === 'assigned' || d.status === 'in_transit');
-
-  const driverLocations = activeDeliveries.map(delivery => {
-    const driver = companyDrivers.find(d => d.id === delivery.driverId);
-    if (driver && driver.currentLatitude && driver.currentLongitude) {
-      return {
-        lat: driver.currentLatitude,
-        lng: driver.currentLongitude,
-        name: driver.name,
-        imageUrl: driver.imageUrl
-      };
-    }
-    return null;
-  }).filter(Boolean);
+  const activeDeliveries = cargoMoverDeliveries.filter(d =>
+    d.status === 'assigned' || d.status === 'in_transit' || d.status === 'active' || d.status === 'accepted'
+  );
+  const pendingDeliveries = cargoMoverDeliveries.filter(d => d.status === 'pending');
+  const completedDeliveries = cargoMoverDeliveries.filter(d => d.status === 'delivered' || d.status === 'completed');
 
   const totalShipments = cargoMoverDeliveries.length;
-  const pendingShipments = cargoMoverDeliveries.filter(d => d.status === 'pending').length;
-  const completedShipments = cargoMoverDeliveries.filter(d => d.status === 'delivered').length;
+  const pendingShipments = pendingDeliveries.length;
+  const completedShipments = completedDeliveries.length;
 
-  // Generate real metrics from actual delivery data
-  const generateGraphMetrics = () => {
-    console.log('All deliveries:', cargoMoverDeliveries);
-    
-    // Check if we have any deliveries at all
-    if (cargoMoverDeliveries.length === 0) {
-      return {
-        xAxisData: ['No Data'],
-        deliveriesData: [0],
-        requestsData: [0]
-      };
+  // Calculate cost for a delivery (with fallback for old data)
+  const calculateDeliveryCost = (delivery) => {
+    // First check if delivery has pre-calculated price
+    if (delivery.calculatedPrice) {
+      const calcPrice = Number(delivery.calculatedPrice);
+      if (!isNaN(calcPrice)) return calcPrice;
     }
 
-    // Always show current status breakdown - this is real data
-    return {
-      xAxisData: ['Pending', 'Active', 'Completed', 'Total'],
-      deliveriesData: [
-        Number(pendingShipments) || 0, 
-        Number(activeDeliveries.length) || 0, 
-        Number(completedShipments) || 0,
-        Number(totalShipments) || 0
-      ],
-      requestsData: [
-        Number(pendingShipments) || 0,
-        0,
-        Number(completedShipments) || 0,
-        Number(pendingShipments + completedShipments) || 0
-      ]
-    };
+    // Fallback: estimate based on weight and distance
+    let price = 0;
+    const weight = Number(delivery.weight) || 0;
+    const distance = Number(delivery.distance) || 0;
+
+    // Use rates from delivery if available, otherwise use defaults
+    const ratePerTon = delivery.ratePerTon || DEFAULT_RATE_PER_TON;
+    const ratePerKm = delivery.ratePerKm || DEFAULT_RATE_PER_KM;
+
+    if (weight > 0) {
+      const weightInTons = weight / 1000;
+      price += ratePerTon * weightInTons;
+    }
+    if (distance > 0) {
+      price += ratePerKm * distance;
+    }
+
+    return Math.round(price);
   };
 
-  const { xAxisData: graphXAxisData, deliveriesData: graphDeliveriesData, requestsData: graphRequestsData } = generateGraphMetrics();
-  
-  console.log('Real Graph Metrics:', { 
-    xAxis: graphXAxisData, 
-    deliveries: graphDeliveriesData, 
-    requests: graphRequestsData,
-    rawData: {
-      totalShipments,
-      activeDeliveries: activeDeliveries.length,
-      pendingShipments,
-      completedShipments
-    }
-  });
+  // Calculate costs using useMemo for performance
+  const { activeCost, completedCost, totalCost } = useMemo(() => {
+    let active = 0;
+    let completed = 0;
+
+    activeDeliveries.forEach(d => { active += calculateDeliveryCost(d); });
+    completedDeliveries.forEach(d => { completed += calculateDeliveryCost(d); });
+
+    return { activeCost: active, completedCost: completed, totalCost: active + completed };
+  }, [activeDeliveries, completedDeliveries]);
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return `UGX ${Math.round(amount).toLocaleString()}`;
+  };
 
   const isLoading = loadingCompanyDeliveries || loadingCompanyDrivers;
 
@@ -152,113 +96,158 @@ function CargoMoverDash() {
   }
 
   return (
-    <div className='dash-des'>
-      <div className='header card'>
+    <div className='cargo-dash'>
+      {/* Header */}
+      <div className='cargo-header'>
         <Search/>
-        <div className='name_user_image'>
-          <div className='cargo-mover-data'>
-            <p className='c_userName'>{user?.username}</p>
-            <p className='c_userComp'>{user?.company}</p>  
-            <p className='c_userComp'>{user?.accountType}</p>  
+        <div className='cargo-user-info'>
+          <div className='cargo-user-text'>
+            <p className='cargo-user-name'>{user?.username}</p>
+            <p className='cargo-user-company'>{user?.company}</p>
+          </div>
+          <img className='cargo-user-avatar' src={user?.imageUrl} alt="User" />
+        </div>
+      </div>
+
+      {/* Welcome Banner */}
+      <div className='cargo-welcome'>
+        <div className='cargo-welcome-content'>
+          <span className='cargo-welcome-badge'>Shipment Overview</span>
+          <h2 className='cargo-welcome-title'>Welcome back, {user?.username?.split(' ')[0] || 'Shipper'}! 📦</h2>
+          <p className='cargo-welcome-text'>
+            You have <strong>{activeDeliveries.length}</strong> active shipments and <strong>{pendingShipments}</strong> pending requests.
+          </p>
+        </div>
+        <div className='cargo-welcome-stats'>
+          <div className='cargo-stat-mini'>
+            <i className="fi fi-rr-box-open"></i>
+            <span>{totalShipments} Shipments</span>
+          </div>
+          <div className='cargo-stat-mini'>
+            <i className="fi fi-rr-check"></i>
+            <span>{completedShipments} Completed</span>
           </div>
         </div>
       </div>
 
-      <Grid container spacing={3} sx={{ mt: 2 }}>
-        {/* Left Side */}
-        <Grid item xs={12} md={8}>
-          <Stack spacing={3}>
-            <Card>
-              <CardContent>
-                <GuyBanner company={user?.company} link="shipments"/>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent>
-                <Graph xAxisData={graphXAxisData} deliveriesData={graphDeliveriesData} requestsData={graphRequestsData}/>
-              </CardContent>
-            </Card>
-            {/* <Card>
-              <CardContent>
-                <div style={{ height: '500px', width: '100%' }}>
-                  <NewMap allRoutes={activeDeliveries} driverLocations={driverLocations} />
-                </div>
-              </CardContent>
-            </Card> */}
-          </Stack>
-        </Grid>
+      {/* Cost Cards Row */}
+      <div className='cargo-cost-row'>
+        <div className='cargo-cost-card active'>
+          <div className='cargo-cost-icon'>
+            <i className="fi fi-rr-shipping-fast"></i>
+          </div>
+          <div className='cargo-cost-info'>
+            <span className='cargo-cost-label'>Active Shipments</span>
+            <span className='cargo-cost-value'>{formatCurrency(activeCost)}</span>
+            <span className='cargo-cost-count'>{activeDeliveries.length} in transit</span>
+          </div>
+        </div>
+        <div className='cargo-cost-card completed'>
+          <div className='cargo-cost-icon'>
+            <i className="fi fi-rr-badge-check"></i>
+          </div>
+          <div className='cargo-cost-info'>
+            <span className='cargo-cost-label'>Completed</span>
+            <span className='cargo-cost-value'>{formatCurrency(completedCost)}</span>
+            <span className='cargo-cost-count'>{completedShipments} delivered</span>
+          </div>
+        </div>
+        <div className='cargo-cost-card total'>
+          <div className='cargo-cost-icon'>
+            <i className="fi fi-rr-wallet"></i>
+          </div>
+          <div className='cargo-cost-info'>
+            <span className='cargo-cost-label'>Total Spent</span>
+            <span className='cargo-cost-value'>{formatCurrency(totalCost)}</span>
+            <span className='cargo-cost-count'>all time</span>
+          </div>
+        </div>
+      </div>
 
-        {/* Right Side */}
-        <Grid item xs={12} md={4}>
-          <Stack spacing={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" component="div" gutterBottom>
-                  Shipment Stats
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <IconBox
-                      iconClass="fi fi-sr-check-circle"
-                      number={totalShipments}
-                      title={"Total Shipments"}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <IconBox
-                      iconClass="fi fi-sr-hourglass-end"
-                      number={pendingShipments}
-                      title={"Pending Shipments"}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <IconBox
-                      iconClass="fi fi-sr-shipping-fast"
-                      number={activeDeliveries.length}
-                      title={"Active Shipments"}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <IconBox
-                      iconClass="fi fi-sr-check-circle"
-                      number={completedShipments}
-                      title={"Completed Shipments"}
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-            <Card sx={{ backgroundColor: '#1976d2', color: 'white' }}>
-              <CardContent>
-                <Typography variant="h5" component="div" gutterBottom>
-                  Shipment Overview
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  You have {activeDeliveries.length} active and {pendingShipments} pending shipments.
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Button 
-                    variant="contained"
-                    startIcon={<ListAlt />}
-                    onClick={() => navigate('/root/shipments')}
-                    sx={{ backgroundColor: 'white', color: '#1976d2', '&:hover': { backgroundColor: '#e0e0e0' } }}
-                  >
-                    View All Shipments
-                  </Button>
-                  <Button 
-                    variant="outlined"
-                    startIcon={<Add />}
-                    onClick={() => navigate('/root/shipments')}
-                    sx={{ color: 'white', borderColor: 'white', '&:hover': { borderColor: '#e0e0e0', backgroundColor: 'rgba(255, 255, 255, 0.1)' } }}
-                  >
-                    Add New Shipment
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
-        </Grid>
-      </Grid>
+      {/* Main Content */}
+      <div className='cargo-main'>
+        {/* Left - Graph */}
+        <div className='cargo-graph-section'>
+          <div className='cargo-section-header'>
+            <h3>Shipment Activity</h3>
+          </div>
+          <div className='cargo-graph-wrapper'>
+            <Graph
+              xAxisData={[1, 2, 3, 4, 5, 6]}
+              deliveriesData={[
+                0,
+                pendingShipments,
+                activeDeliveries.length,
+                completedShipments,
+                totalShipments,
+                totalShipments
+              ]}
+              requestsData={[
+                0,
+                pendingShipments,
+                pendingShipments,
+                completedShipments,
+                totalShipments,
+                totalShipments
+              ]}
+            />
+          </div>
+          <button className='cargo-action-btn primary' style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }} onClick={() => navigate('/root/shipments')}>
+            <i className="fi fi-rr-plus"></i>
+            <span>Add New Shipment</span>
+          </button>
+        </div>
+
+        {/* Right - Stats */}
+        <div className='cargo-stats-section'>
+          <div className='cargo-section-header'>
+            <h3>Quick Actions</h3>
+          </div>
+          <div className='cargo-quick-actions'>
+            <button className='cargo-action-btn primary' onClick={() => navigate('/root/shipments')}>
+              <i className="fi fi-rr-plus"></i>
+              <span>New Shipment</span>
+            </button>
+            <button className='cargo-action-btn' onClick={() => navigate('/root/shipments')}>
+              <i className="fi fi-rr-list"></i>
+              <span>View All Shipments</span>
+            </button>
+          </div>
+
+          <div className='cargo-section-header' style={{ marginTop: '20px' }}>
+            <h3>Shipment Status</h3>
+          </div>
+          <div className='cargo-status-list'>
+            <div className='cargo-status-item'>
+              <div className='cargo-status-icon pending'>
+                <i className="fi fi-rr-hourglass-end"></i>
+              </div>
+              <div className='cargo-status-info'>
+                <span className='cargo-status-label'>Pending</span>
+                <span className='cargo-status-count'>{pendingShipments}</span>
+              </div>
+            </div>
+            <div className='cargo-status-item'>
+              <div className='cargo-status-icon active'>
+                <i className="fi fi-rr-truck-moving"></i>
+              </div>
+              <div className='cargo-status-info'>
+                <span className='cargo-status-label'>In Transit</span>
+                <span className='cargo-status-count'>{activeDeliveries.length}</span>
+              </div>
+            </div>
+            <div className='cargo-status-item'>
+              <div className='cargo-status-icon completed'>
+                <i className="fi fi-rr-check-circle"></i>
+              </div>
+              <div className='cargo-status-info'>
+                <span className='cargo-status-label'>Delivered</span>
+                <span className='cargo-status-count'>{completedShipments}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

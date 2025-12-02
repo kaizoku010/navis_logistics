@@ -22,6 +22,7 @@ import AddTruck from "./pages/AddTruck";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.js";
 import { DatabaseProvider } from "./contexts/DatabaseContext.js";
 import TruckManagement from "./pages/TruckManagement";
+import PricingModel from "./pages/PricingModel";
 import CargoMoverDash from "./pages/CargoMoverDash";
 import TruckerDash from "./pages/TruckOwnerDash";
 import DriverDashboard from "./pages/DriverDashboard"; // New import
@@ -42,11 +43,22 @@ import { TruckOwnerTruckProvider } from "./contexts/TruckOwnerTruckContext";
 import { TruckOwnerDriverProvider } from "./contexts/TruckOwnerDriverContext";
 import { FirebaseProvider } from "./contexts/firebaseContext";
 import DeliveriesEnroute from "./pages/DeliveriesEnroute.js";
+import AdminAnalytics from "./pages/AdminAnalytics.js";
 // console.log("Firebase API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
 // console.log("Firebase API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Wait for auth to finish loading before making redirect decision
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
   if (
     !user ||
     (!allowedRoles.includes(user.accountType) && user.accountType !== "root")
@@ -105,6 +117,11 @@ const router = createBrowserRouter([
   {
     path: "regesiter",
     element: <RegCustomer />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/admin-analytics",
+    element: <AdminAnalytics />, // Fullscreen, protected by 6-digit code only
     errorElement: <ErrorPage />,
   },
   {
@@ -213,6 +230,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["track-owner"]}>
             <TruckManagement />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/root/pricing-model",
+        element: (
+          <ProtectedRoute allowedRoles={["track-owner"]}>
+            <PricingModel />
           </ProtectedRoute>
         ),
       },
