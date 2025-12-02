@@ -72,8 +72,12 @@ function Header() {
             <div className="close_mobile_menu" onClick={toggleMobileMenu}>
               <i className="fi fi-rr-cross-small"></i>
             </div>
-            <button className='header_btn'>Home</button>
-            <button className='header_btn'>Features</button>
+            <Link to="/">
+              <button className='header_btn'>Home</button>
+            </Link>
+            <Link to="/features">
+              <button className='header_btn'>Features</button>
+            </Link>
             <button className='header_btn'>Pricing</button>
             <Link to="/sales">
               <button className='header_btn'>Contact</button>

@@ -3,12 +3,15 @@ import { collection, onSnapshot } from 'firebase/firestore';
 import { firestore } from '../contexts/firebaseContext';
 import { useDatabase } from '../contexts/DatabaseContext';
 import { Table, Card, Spin, Statistic, Progress, Input, Button, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import Logo from '../assets/logo2.png';
 import './AdminAnalytics.css';
 
 // Access code for admin analytics (change this to your preferred code)
 const ACCESS_CODE = '240680';
 
 function AdminAnalytics() {
+  const navigate = useNavigate();
   const { deliveries, allTrucks, allPricingModels, fetchAllTrucksFromAPI, fetchAllPricingModelsFromAPI } = useDatabase();
   const [allDrivers, setAllDrivers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
@@ -226,33 +229,79 @@ function AdminAnalytics() {
   if (!isVerified) {
     return (
       <div className="access-code-overlay">
-        <div className="access-code-modal">
-          <div className="access-code-icon">
-            <i className="fi fi-rr-lock"></i>
+        <div className="access-code-container">
+          {/* Left side - branding */}
+          <div className="access-code-branding">
+            <div className="branding-content">
+              <img src={Logo} alt="Navis" className="access-logo" />
+              <h1>Platform Analytics</h1>
+              <p>Monitor your entire logistics network from a single dashboard. Track companies, fleets, drivers, and earnings in real-time.</p>
+              <div className="branding-features">
+                <div className="branding-feature">
+                  <i className="fi fi-rr-chart-pie"></i>
+                  <span>Real-time metrics</span>
+                </div>
+                <div className="branding-feature">
+                  <i className="fi fi-rr-building"></i>
+                  <span>Multi-company overview</span>
+                </div>
+                <div className="branding-feature">
+                  <i className="fi fi-rr-truck-side"></i>
+                  <span>Fleet tracking</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <h2>Admin Access Required</h2>
-          <p>Enter 6-digit access code to continue</p>
-          <Input.Password
-            value={accessCode}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-              setAccessCode(val);
-              setCodeError(false);
-            }}
-            onKeyPress={handleKeyPress}
-            placeholder="Enter code"
-            maxLength={6}
-            status={codeError ? 'error' : ''}
-            className="access-code-input"
-          />
-          <Button
-            type="primary"
-            onClick={handleCodeSubmit}
-            disabled={accessCode.length !== 6}
-            block
-          >
-            Verify Access
-          </Button>
+
+          {/* Right side - form */}
+          <div className="access-code-form-side">
+            <button className="back-home-btn" onClick={() => navigate('/')}>
+              <i className="fi fi-rr-arrow-left"></i>
+              <span>Back to Home</span>
+            </button>
+
+            <div className="access-code-form">
+              <div className="access-code-icon">
+                <i className="fi fi-rr-shield-check"></i>
+              </div>
+              <h2>Secure Access</h2>
+              <p>Enter your 6-digit admin code to access the analytics dashboard</p>
+
+              <div className="code-input-wrapper">
+                <label>Access Code</label>
+                <Input.Password
+                  value={accessCode}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setAccessCode(val);
+                    setCodeError(false);
+                  }}
+                  onKeyPress={handleKeyPress}
+                  placeholder="------"
+                  maxLength={6}
+                  status={codeError ? 'error' : ''}
+                  className="access-code-input"
+                />
+                {codeError && <span className="code-error">Invalid access code. Please try again.</span>}
+              </div>
+
+              <Button
+                type="primary"
+                onClick={handleCodeSubmit}
+                disabled={accessCode.length !== 6}
+                block
+                className="verify-btn"
+              >
+                <i className="fi fi-rr-unlock"></i>
+                Unlock Dashboard
+              </Button>
+
+              <p className="access-note">
+                <i className="fi fi-rr-info"></i>
+                Contact your administrator if you don't have an access code
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -294,6 +343,9 @@ function AdminAnalytics() {
     <div className="admin-analytics">
       {/* Header */}
       <div className="admin-header">
+        <button className="header-back-btn" onClick={() => navigate('/')}>
+          <i className="fi fi-rr-arrow-left"></i>
+        </button>
         <div className="admin-title">
           <h1>Platform Analytics</h1>
           <p>Overview of all companies, trucks, drivers, and earnings</p>

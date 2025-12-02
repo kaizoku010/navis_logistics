@@ -44,6 +44,7 @@ import { TruckOwnerDriverProvider } from "./contexts/TruckOwnerDriverContext";
 import { FirebaseProvider } from "./contexts/firebaseContext";
 import DeliveriesEnroute from "./pages/DeliveriesEnroute.js";
 import AdminAnalytics from "./pages/AdminAnalytics.js";
+import Features from "./pages/Features.js";
 // console.log("Firebase API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
 // console.log("Firebase API Key:", process.env.REACT_APP_FIREBASE_API_KEY);
 
@@ -112,6 +113,11 @@ const router = createBrowserRouter([
   {
     path: "/sales",
     element: <Contact />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/features",
+    element: <Features />,
     errorElement: <ErrorPage />,
   },
   {

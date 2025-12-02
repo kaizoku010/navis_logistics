@@ -1,0 +1,287 @@
+/* Features Page Styles */
+.features-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.features-content {
+  padding-top: 100px;
+}
+
+/* Hero Section */
+.features-hero {
+  background-color: #1a1a2e;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.features-hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.features-badge {
+  display: inline-block;
+  background-color: #216DF0;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.features-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 24px 0;
+  line-height: 1.2;
+}
+
+.features-subtitle {
+  font-size: 18px;
+  color: #a0a0a0;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Main Features Grid */
+.features-main {
+  padding: 80px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.feature-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  background-color: #e8f0fe;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.feature-icon i {
+  font-size: 24px;
+  color: #216DF0;
+}
+
+.feature-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+}
+
+.feature-description {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.feature-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.feature-benefits li i {
+  color: #216DF0;
+  font-size: 12px;
+}
+
+/* User Types Section */
+.features-users {
+  background-color: #1a1a2e;
+  padding: 80px 24px;
+}
+
+.features-users-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 60px auto;
+}
+
+.features-users-header h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  margin: 16px 0;
+}
+
+.features-users-header p {
+  font-size: 16px;
+  color: #a0a0a0;
+  margin: 0;
+}
+
+.user-types-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.user-type-card {
+  background: #252540;
+  border-radius: 16px;
+  padding: 32px;
+  border: 1px solid #3a3a5a;
+}
+
+.user-type-icon {
+  width: 60px;
+  height: 60px;
+  background-color: #216DF0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.user-type-icon i {
+  font-size: 28px;
+  color: white;
+}
+
+.user-type-card h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 12px 0;
+}
+
+.user-type-card p {
+  font-size: 15px;
+  color: #a0a0a0;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.user-type-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-type-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.user-type-features li i {
+  color: #216DF0;
+  font-size: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .user-types-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .features-title {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .features-hero {
+    padding: 60px 20px;
+  }
+
+  .features-title {
+    font-size: 28px;
+  }
+
+  .features-subtitle {
+    font-size: 16px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .user-types-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .features-main {
+    padding: 60px 20px;
+  }
+
+  .features-users {
+    padding: 60px 20px;
+  }
+
+  .features-users-header h2 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .features-content {
+    padding-top: 80px;
+  }
+
+  .features-hero {
+    padding: 40px 16px;
+  }
+
+  .features-title {
+    font-size: 24px;
+  }
+
+  .feature-card {
+    padding: 24px;
+  }
+
+  .user-type-card {
+    padding: 24px;
+  }
+}
+
