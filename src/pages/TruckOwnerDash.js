@@ -58,14 +58,14 @@ const getSortedtrucksByCompany = () => {
     if (!nonUserDeliveries || !user?.company) return [];
     return nonUserDeliveries
       .filter(delivery => delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() && delivery.status ==="completed" )
-      .sort((a, b) => a.company.localeCompare(b.company));
+      .sort((a, b) => (a.company || '').localeCompare(b.company || ''));
   };
 
   const declinedDeliveriesByCompany = () => {
     if (!nonUserDeliveries || !user?.company) return [];
     return nonUserDeliveries
       .filter(delivery => delivery.acceptedBy?.toLowerCase() === user.company.toLowerCase() && delivery.status ==="declined" )
-      .sort((a, b) => a.company.localeCompare(b.company));
+      .sort((a, b) => (a.company || '').localeCompare(b.company || ''));
   };
 
   const pendingDeliveriesCompany = () => {

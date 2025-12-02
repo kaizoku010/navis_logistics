@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useDriverAuth } from '../contexts/DriverAuthContext'; // Import the driver auth hook
@@ -9,9 +9,30 @@ export default function Root() {
   const { user, logout } = useAuth();
   const { driver, driverLogout } = useDriverAuth(); // Get driver state and logout function
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Determine the current user, whether it's a regular user or a driver
   const currentUser = user || driver;
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to a search results page or filter current page
+      console.log('Searching for:', searchQuery);
+      // You can implement search logic here, e.g., navigate(`/root/search?q=${searchQuery}`)
+    }
+  };
+
+  const handleNewAction = () => {
+    // Navigate based on user type
+    if (currentUser?.accountType === 'cargo-mover') {
+      navigate('/root/shipments'); // Cargo movers create shipments
+    } else if (currentUser?.accountType === 'track-owner') {
+      navigate('/root/truck-management'); // Truck owners add trucks
+    } else {
+      navigate('/root/shipments'); // Default to shipments
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -32,20 +53,20 @@ export default function Root() {
       <div id="sidebar">
         <h1>Navis Central Dashboard</h1>
         <div>
-          <form id="search-form" role="search">
+          <form id="search-form" role="search" onSubmit={handleSearch}>
             <input
               id="q"
-              aria-label="Search contacts"
+              aria-label="Search"
               placeholder="Search"
               type="search"
               name="q"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <div id="search-spinner" aria-hidden hidden={true} />
             <div className="sr-only" aria-live="polite"></div>
           </form>
-          <form method="post">
-            <button >New</button>
-          </form>
+          <button type="button" onClick={handleNewAction}>New</button>
         </div>
         <nav>
           <ul>

@@ -123,11 +123,17 @@ function Deliveries() {
             return;
         }
 
+        // Warn if distance is not available yet
+        if (!calculatedDistance) {
+            message.warning('Distance not calculated yet. Please wait for the map to load or try again.');
+            return;
+        }
+
         // Calculate price based on weight and distance
         const price = calculatePrice(selectedDelivery.weight, calculatedDistance);
         const pricingData = {
             calculatedPrice: price,
-            distance: calculatedDistance || 0,
+            distance: calculatedDistance,
             ratePerKm: pricingModel?.ratePerKm || 0,
             ratePerTon: pricingModel?.ratePerTon || 0,
         };
@@ -145,7 +151,7 @@ function Deliveries() {
         );
         await saveAssignmentToAPI({ deliveryId: selectedDelivery.id, driverId: selectedDriver, truckId: selectedTruck });
         await updateDriver(selectedDriver, { currentTruckId: selectedTruck, currentDeliveryId: selectedDelivery.id });
-        message.success(`Delivery accepted! Price: UGX ${price.toLocaleString()}`);
+        message.success(`Delivery accepted! Price: UGX ${price.toLocaleString()} (${calculatedDistance} km)`);
         setIsAssignModalVisible(false);
         setCalculatedDistance(null);
         fetchDeliveriesFromAPI();
