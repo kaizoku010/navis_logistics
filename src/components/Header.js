@@ -78,7 +78,7 @@ function Header() {
             <Link to="/features">
               <button className='header_btn'>Features</button>
             </Link>
-            <button className='header_btn'>FAQs</button>
+            <button className='header_btn'>Faqs</button>
             <Link to="/sales">
               <button className='header_btn'>Contact</button>
             </Link>
