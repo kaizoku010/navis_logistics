@@ -81,7 +81,7 @@ navigation("/start")
         <div className='text_hero'>
           <h1 className='f-text'>Reduce your delivery costs by 20%</h1>
           <p className='boost'>
-            Boost route efficiency, scale easily, and simplify delivery route planning with the world's most popular driver app and delivery software.
+            Boost route efficiency, scale easily, and simplify delivery route planning with our driver app and delivery software.
           </p>
           <div className='btnArea'>
             <button onClick={start} className='newBtn resizebtn'>Deliver Items</button>
