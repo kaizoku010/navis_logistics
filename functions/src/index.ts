@@ -1,5 +1,9 @@
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import {
+  onDocumentCreated,
+  onDocumentUpdated,
+} from 'firebase-functions/v2/firestore';
+import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
 import { sendEmail } from './emailService';
 import { emailTemplates } from './emailTemplates';
 
@@ -10,10 +14,13 @@ admin.initializeApp();
  * Trigger email when a user is created
  * Firestore trigger: onCreate on 'users' collection
  */
-export const sendWelcomeEmail = functions.firestore
-  .document('users/{userId}')
-  .onCreate(async (snap) => {
+export const sendWelcomeEmail = onDocumentCreated('users/{userId}', async (event) => {
     try {
+      const snap = event.data;
+      if (!snap) {
+        console.log("No data associated with the event");
+        return;
+      }
       const userData = snap.data();
       const { email, username, company } = userData;
 
@@ -40,10 +47,13 @@ export const sendWelcomeEmail = functions.firestore
  * Trigger email when a delivery status changes
  * Firestore trigger: onUpdate on 'deliveries' collection
  */
-export const sendDeliveryStatusEmail = functions.firestore
-  .document('deliveries/{deliveryId}')
-  .onUpdate(async (change) => {
+export const sendDeliveryStatusEmail = onDocumentUpdated('deliveries/{deliveryId}', async (event) => {
     try {
+      const change = event.data;
+      if (!change) {
+        console.log("No data associated with the event");
+        return;
+      }
       const beforeData = change.before.data();
       const afterData = change.after.data();
       const deliveryId = change.after.id;
@@ -139,12 +149,12 @@ export const sendDeliveryStatusEmail = functions.firestore
  * Callable function to send password reset email
  * Call from frontend: firebase.functions().httpsCallable('sendPasswordResetEmail')
  */
-export const sendPasswordResetEmail = functions.https.onCall(async (data, context) => {
+export const sendPasswordResetEmail = onCall(async (request) => {
   try {
-    const { email, resetLink, expiryTime } = data;
+    const { email, resetLink, expiryTime } = request.data;
 
     if (!email || !resetLink) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'invalid-argument',
         'Email and resetLink are required'
       );
@@ -165,7 +175,10 @@ export const sendPasswordResetEmail = functions.https.onCall(async (data, contex
     return { success: true, message: 'Password reset email sent' };
   } catch (error) {
     console.error('Error sending password reset email:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to send reset email');
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    throw new HttpsError('internal', 'Failed to send reset email');
   }
 });
 
@@ -173,7 +186,7 @@ export const sendPasswordResetEmail = functions.https.onCall(async (data, contex
  * Callable function to send driver assignment notification
  * Call from frontend when assigning a delivery to a driver
  */
-export const sendDriverAssignmentEmail = functions.https.onCall(async (data, context) => {
+export const sendDriverAssignmentEmail = onCall(async (request) => {
   try {
     const {
       driverEmail,
@@ -183,10 +196,10 @@ export const sendDriverAssignmentEmail = functions.https.onCall(async (data, con
       deliveryLocation,
       estimatedKm,
       estimatedEarnings,
-    } = data;
+    } = request.data;
 
     if (!driverEmail || !deliveryId) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         'invalid-argument',
         'driverEmail and deliveryId are required'
       );
@@ -210,7 +223,10 @@ export const sendDriverAssignmentEmail = functions.https.onCall(async (data, con
     return { success: true, message: 'Assignment email sent to driver' };
   } catch (error) {
     console.error('Error sending driver assignment email:', error);
-    throw new functions.https.HttpsError('internal', 'Failed to send assignment email');
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    throw new HttpsError('internal', 'Failed to send assignment email');
   }
 });
 
@@ -218,7 +234,7 @@ export const sendDriverAssignmentEmail = functions.https.onCall(async (data, con
  * HTTP endpoint to send custom emails (with authentication)
  * POST to /sendCustomEmail with bearer token
  */
-export const sendCustomEmail = functions.https.onRequest(async (req, res): Promise<void> => {
+export const sendCustomEmail = onRequest(async (req, res): Promise<void> => {
   // Enable CORS
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
