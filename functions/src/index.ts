@@ -218,7 +218,7 @@ export const sendDriverAssignmentEmail = functions.https.onCall(async (data, con
  * HTTP endpoint to send custom emails (with authentication)
  * POST to /sendCustomEmail with bearer token
  */
-export const sendCustomEmail = functions.https.onRequest(async (req, res) => {
+export const sendCustomEmail = functions.https.onRequest(async (req, res): Promise<void> => {
   // Enable CORS
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -233,20 +233,23 @@ export const sendCustomEmail = functions.https.onRequest(async (req, res) => {
     // Verify authorization token
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     const token = authHeader.substring(7);
     if (token !== process.env.ADMIN_TOKEN) {
-      return res.status(403).json({ error: 'Invalid token' });
+      res.status(403).json({ error: 'Invalid token' });
+      return;
     }
 
     const { to, subject, htmlContent } = req.body;
 
     if (!to || !subject || !htmlContent) {
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields: to, subject, htmlContent',
       });
+      return;
     }
 
     await sendEmail(to, subject, htmlContent);

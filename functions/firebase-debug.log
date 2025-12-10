@@ -1,0 +1,40 @@
+[debug] [2025-12-10T18:05:14.120Z] ----------------------------------------------------------------------
+[debug] [2025-12-10T18:05:14.124Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\USER\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2025-12-10T18:05:14.124Z] CLI Version:   14.27.0
+[debug] [2025-12-10T18:05:14.125Z] Platform:      win32
+[debug] [2025-12-10T18:05:14.125Z] Node Version:  v22.14.0
+[debug] [2025-12-10T18:05:14.126Z] Time:          Wed Dec 10 2025 21:05:14 GMT+0300 (East Africa Time)
+[debug] [2025-12-10T18:05:14.126Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-10T18:05:14.408Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-10T18:05:14.409Z] > authorizing via signed-in user (navisuganda@gmail.com)
+[debug] [2025-12-10T18:05:14.409Z] [iam] checking project navis-3a087 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-12-10T18:05:14.411Z] No OAuth tokens found
+[debug] [2025-12-10T18:05:14.411Z] No OAuth tokens found
+[debug] [2025-12-10T18:05:14.412Z] > refreshing access token with scopes: []
+[debug] [2025-12-10T18:05:14.415Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-12-10T18:05:14.415Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-10T18:05:22.037Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-12-10T18:05:22.037Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-10T18:05:22.043Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions [none]
+[debug] [2025-12-10T18:05:22.043Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions x-goog-quota-user=projects/navis-3a087
+[debug] [2025-12-10T18:05:22.043Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-12-10T18:05:30.735Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions 200
+[debug] [2025-12-10T18:05:30.735Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-12-10T18:05:30.736Z] Checked if tokens are valid: true, expires at: 1765393521038
+[debug] [2025-12-10T18:05:30.736Z] Checked if tokens are valid: true, expires at: 1765393521038
+[debug] [2025-12-10T18:05:30.736Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/navis-3a087/serviceAccounts/navis-3a087@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-12-10T18:05:30.737Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/navis-3a087/serviceAccounts/navis-3a087@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-12-10T18:05:34.112Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/navis-3a087/serviceAccounts/navis-3a087@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2025-12-10T18:05:34.113Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/navis-3a087/serviceAccounts/navis-3a087@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'navis-3a087'...
+[info] 
+[info] i  deploying functions 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run build
+[debug] [2025-12-10T18:05:55.140Z] Error: Timed out.
+    at Timeout._onTimeout (C:\Users\USER\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:275:49)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[error] 
+[error] Error: An unexpected error has occurred.
