@@ -10,3 +10,20 @@ server/
 server/.env
 src/config/serviceAccountKey.json
 .vercel
+
+# Firebase Functions
+functions/node_modules/
+functions/.runtimeconfig.json
+functions/dist/
+functions/.env
+functions/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

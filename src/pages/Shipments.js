@@ -123,6 +123,7 @@ const Shipments = () => {
       const newItem = {
         uid: uuidv4(),
         ...form,
+        email: user.email,
         status: 'pending',
         pickupCoords,
         destinationCoords,
