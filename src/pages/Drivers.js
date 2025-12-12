@@ -146,36 +146,36 @@ function Drivers() {
     if (!selectedDriver) return;
 
     const updatedDriverData = {
-        ...selectedDriver,
-        name: driverName || selectedDriver.name,
-        email: driverEmail || selectedDriver.email,
-        phoneNumber: phoneNumber || selectedDriver.phoneNumber,
-        age: age || selectedDriver.age,
-        permitId: permitId || selectedDriver.permitId,
-        ninNumber: ninNumber || selectedDriver.ninNumber,
-        password: driverPassword || selectedDriver.password,
+      ...selectedDriver,
+      name: driverName || selectedDriver.name,
+      email: driverEmail || selectedDriver.email,
+      phoneNumber: phoneNumber || selectedDriver.phoneNumber,
+      age: age || selectedDriver.age,
+      permitId: permitId || selectedDriver.permitId,
+      ninNumber: ninNumber || selectedDriver.ninNumber,
+      password: driverPassword || selectedDriver.password,
     };
 
     try {
-        await updateDriver(selectedDriver.id, updatedDriverData);
-        fetchDriversFromAPI();
-        setIsEditModalOpen(false);
-        // Clear fields
-        setDriverName('');
-        setDriverEmail('');
-        setDriverPassword('');
-        setPhoneNumber('');
-        setAge('');
-        setPermitId('');
-        setNinNumber('');
+      await updateDriver(selectedDriver.id, updatedDriverData);
+      fetchDriversFromAPI();
+      setIsEditModalOpen(false);
+      // Clear fields
+      setDriverName('');
+      setDriverEmail('');
+      setDriverPassword('');
+      setPhoneNumber('');
+      setAge('');
+      setPermitId('');
+      setNinNumber('');
     } catch (error) {
-        console.error('Error updating driver:', error);
-        message.error('Failed to update driver.');
+      console.error('Error updating driver:', error);
+      message.error('Failed to update driver.');
     }
   };
 
 
- const assignmentMap = useMemo(() => {
+  const assignmentMap = useMemo(() => {
     const map = new Map();
     assignments.forEach(a => {
       const truck = trucks.find(t => t.id === a.truckId);
@@ -185,11 +185,11 @@ function Drivers() {
     });
     return map;
   }, [assignments, trucks]);
-  
+
   const getAssignedTruck = (driverId) => {
     return assignmentMap.get(driverId) || 'None';
   };
-  
+
 
 
   const handleAssignTruck = async () => {
@@ -211,7 +211,8 @@ function Drivers() {
   };
 
   const filteredDrivers = drivers.filter(driver =>
-    driver.name.toLowerCase().includes(searchTerm.toLowerCase())
+    driver.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (user?.company ? driver.company === user.company : true)
   );
 
   const columns = useMemo(() => [
@@ -251,21 +252,21 @@ function Drivers() {
       accessor: 'password',
     },
     {
-        Header: 'Actions',
-        accessor: 'actions',
-        Cell: ({ cell }) => (
-            <div>
-                <button onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedDriver(cell.row.original);
-                    setIsEditModalOpen(true);
-                }}>Edit</button>
-                <button onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteConfirmation(cell.row.original.id)
-                }}>Delete</button>
-            </div>
-        )
+      Header: 'Actions',
+      accessor: 'actions',
+      Cell: ({ cell }) => (
+        <div>
+          <button onClick={(e) => {
+            e.stopPropagation();
+            setSelectedDriver(cell.row.original);
+            setIsEditModalOpen(true);
+          }}>Edit</button>
+          <button onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteConfirmation(cell.row.original.id)
+          }}>Delete</button>
+        </div>
+      )
     }
   ], []);
 
@@ -283,7 +284,7 @@ function Drivers() {
     <div className='all-drivers-page'>
       <div className='add-driver'>
         <Search />
-        <Button style={{width:"20%", borderRadius:"10px"}} className='' onClick={() => setIsModalOpen(true)}>Add Driver</Button>
+        <Button style={{ width: "20%", borderRadius: "10px" }} className='' onClick={() => setIsModalOpen(true)}>Add Driver</Button>
       </div>
       <div className='all-drivers'>
         <table {...getTableProps()} className='drivers-table'>
@@ -315,7 +316,7 @@ function Drivers() {
         <div className='modal'>
           <div className='modal-content2'>
             <h2>Add Driver</h2>
-            {loading && <LinearProgress size="md"  variant="soft" value={progress} />}
+            {loading && <LinearProgress size="md" variant="soft" value={progress} />}
             <form onSubmit={handleAddDriver}>
               <label>Driver Name</label>
               <input
@@ -402,7 +403,7 @@ function Drivers() {
               <p>Permit ID: {selectedDriver.permitId}</p>
               <p>NIN Number: {selectedDriver.ninNumber}</p>
               <p>Assigned Truck: {selectedDriver.numberPlate}</p>
-              
+
               <div className="assign-truck-section">
                 <label htmlFor="truck-select">Assign Truck:</label>
                 <select

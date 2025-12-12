@@ -18,8 +18,8 @@ function TruckManagement() {
     fetchDriversFromAPI,
     saveAssignmentToAPI,
     fetchAssignmentsFromAPI,
-    updateDriver, 
-    deleteTruck, 
+    updateDriver,
+    deleteTruck,
     trucks,
     drivers,
     assignments,
@@ -75,7 +75,7 @@ function TruckManagement() {
 
   const showEditModal = (truck = null) => {
     setEditingTruck(truck);
-    form.setFieldsValue(truck ? { ...truck, upload: [] } : {type: '', cargoType: ''});
+    form.setFieldsValue(truck ? { ...truck, upload: [] } : { type: '', cargoType: '' });
     setIsEditModalVisible(true);
   };
 
@@ -128,7 +128,8 @@ function TruckManagement() {
 
   const filteredTrucks = trucks.filter((truck) => {
     const searchLower = searchText.toLowerCase();
-    return (
+    const belongsToCompany = user?.company ? truck.company === user.company : true;
+    return belongsToCompany && (
       (truck.type && truck.type.toLowerCase().includes(searchLower)) ||
       (truck.numberPlate && truck.numberPlate.toLowerCase().includes(searchLower)) ||
       (truck.make && truck.make.toLowerCase().includes(searchLower))
@@ -137,7 +138,7 @@ function TruckManagement() {
 
   const columns = [
     { title: 'Image', dataIndex: 'imageUrl', key: 'imageUrl', render: (text) => <Image src={text} width={50} /> },
-    { title: 'Type', dataIndex: 'type', key: 'type', filters: [...new Set(trucks.map(t => t.type))].map(t => ({text: t, value: t})), onFilter: (value, record) => record.type.includes(value) },
+    { title: 'Type', dataIndex: 'type', key: 'type', filters: [...new Set(trucks.map(t => t.type))].map(t => ({ text: t, value: t })), onFilter: (value, record) => record.type.includes(value) },
     { title: 'Number Plate', dataIndex: 'numberPlate', key: 'numberPlate' },
     { title: 'Make', dataIndex: 'make', key: 'make' },
     { title: 'Assigned Driver', key: 'assignedDriver', render: (text, record) => getAssignedDriver(record.uid) },
@@ -265,7 +266,7 @@ function TruckManagement() {
           <p><strong>Speed:</strong> {selectedTruck.speed}</p>
           <p><strong>Cargo Type:</strong> {selectedTruck.cargoType}</p>
           <p><strong>Assigned Driver:</strong> {getAssignedDriver(selectedTruck.uid)}</p>
-          
+
           <Form layout="vertical">
             <Form.Item label="Assign Driver">
               <Select

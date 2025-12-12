@@ -14,7 +14,7 @@ function HomePage() {
     <VersionInfo 
       version="9.1.0"
       status="Under Development"
-      lastUpdated="Dec 10, 2025"
+      lastUpdated="Dec 12, 2025"
     />
     </div>
   )
