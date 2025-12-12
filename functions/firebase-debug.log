@@ -1,0 +1,21 @@
+[debug] [2025-12-12T20:19:05.930Z] ----------------------------------------------------------------------
+[debug] [2025-12-12T20:19:05.934Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\USER\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2025-12-12T20:19:05.934Z] CLI Version:   14.27.0
+[debug] [2025-12-12T20:19:05.935Z] Platform:      win32
+[debug] [2025-12-12T20:19:05.935Z] Node Version:  v22.14.0
+[debug] [2025-12-12T20:19:05.935Z] Time:          Fri Dec 12 2025 23:19:05 GMT+0300 (East Africa Time)
+[debug] [2025-12-12T20:19:05.935Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-12T20:19:06.272Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-12T20:19:06.273Z] > authorizing via signed-in user (navisuganda@gmail.com)
+[debug] [2025-12-12T20:19:06.273Z] [iam] checking project navis-3a087 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-12-12T20:19:06.276Z] No OAuth tokens found
+[debug] [2025-12-12T20:19:06.276Z] No OAuth tokens found
+[debug] [2025-12-12T20:19:06.276Z] > refreshing access token with scopes: []
+[debug] [2025-12-12T20:19:06.280Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-12-12T20:19:06.280Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-12T20:19:06.721Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-12-12T20:19:06.721Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-12T20:19:06.728Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions [none]
+[debug] [2025-12-12T20:19:06.728Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions x-goog-quota-user=projects/navis-3a087
+[debug] [2025-12-12T20:19:06.728Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/navis-3a087:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
